@@ -21,6 +21,7 @@ class Category(models.Model):
 
     class Meta:
         verbose_name_plural = 'categories'
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -35,6 +36,9 @@ class Product(models.Model):
     images = models.ManyToManyField(
         Image, through='ProductImage', related_name='products')
     available = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name

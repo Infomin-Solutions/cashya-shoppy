@@ -5,7 +5,6 @@ from rest_framework.serializers import ValidationError
 
 
 class CategorySerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField()
     image_url = serializers.SerializerMethodField(read_only=True)
     total_products = serializers.SerializerMethodField(read_only=True)
 
@@ -58,6 +57,18 @@ class ProductSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'category', 'available', 'variants', 'images']
         read_only_fields = ['id', 'variants', 'images']
+
+
+class CategoryProductSerializer(serializers.ModelSerializer):
+    products = ProductSerializer(many=True, read_only=True)
+    total_products = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = models.Category
+        fields = ['id', 'name', 'products', 'total_products']
+
+    def get_total_products(self, obj):
+        return obj.products.count()
 
 
 class CartItemSerializer(serializers.ModelSerializer):

@@ -5,7 +5,7 @@ from django.shortcuts import get_object_or_404
 
 from rest_framework import status
 from rest_framework.response import Response
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
@@ -30,9 +30,15 @@ class ProductViewSet(ReadOnlyModelViewSet):
     serializer_class = serializers.ProductSerializer
     permission_classes = (AllowAny, )
     pagination_class = PageNumberPagination
-    filter_backends = (SearchFilter, )
+    filter_backends = (SearchFilter, OrderingFilter)
     search_fields = '__all__'
     ordering_fields = '__all__'
+
+
+class CategoryProductViewSet(ReadOnlyModelViewSet):
+    queryset = models.Category.objects.all()
+    serializer_class = serializers.CategoryProductSerializer
+    permission_classes = (AllowAny, )
 
 
 class CartViewSet(ViewSet):
