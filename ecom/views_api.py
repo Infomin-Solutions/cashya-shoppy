@@ -31,7 +31,7 @@ class ProductViewSet(ReadOnlyModelViewSet):
     permission_classes = (AllowAny, )
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, OrderingFilter)
-    search_fields = '__all__'
+    search_fields = ['name', 'description']
     ordering_fields = '__all__'
 
 

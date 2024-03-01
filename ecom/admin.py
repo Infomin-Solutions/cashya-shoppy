@@ -15,7 +15,7 @@ class ImageAdmin(admin.ModelAdmin):
 
 @admin.register(models.Category)
 class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['id', 'name']
+    list_display = ['name']
 
 
 class ProductImageInline(admin.TabularInline):
@@ -33,7 +33,7 @@ class ProductVariantInline(admin.TabularInline):
 @admin.register(models.Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = [
-        'id', 'name', 'variants_count', 'category', 'images_count', 'available']
+        'name', 'variants_count', 'category', 'images_count', 'available']
     inlines = [ProductImageInline, ProductVariantInline]
 
     def images_count(self, obj):
@@ -55,7 +55,7 @@ class CartItemInline(admin.TabularInline):
 
 @admin.register(models.Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ['id', 'user', 'cart_items_count', 'cart_price']
+    list_display = ['user', 'cart_items_count', 'cart_price']
     inlines = [CartItemInline]
 
     def cart_items_count(self, obj):

@@ -38,7 +38,7 @@ class Product(models.Model):
     available = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ['name']
+        ordering = ['-available', 'name']
 
     def __str__(self):
         return self.name
@@ -56,7 +56,7 @@ class ProductVariant(models.Model):
     sort_order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['sort_order']
+        ordering = ['-available', 'sort_order']
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"
