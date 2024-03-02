@@ -1,0 +1,18 @@
+<div class="col">
+    <div class="p-1" id="product-card-{{ id }}">
+        <img src="{{ image }}" alt="test" class="w-100 border" style="aspect-ratio: 1 / 1;">
+        <button class="btn btn-primary w-100 rounded-0 text-uppercase fw-semibold p-1">
+            <small>
+                Quick Buy
+                <i class="fa fa-shopping-cart ms-2"></i>
+            </small>
+        </button>
+        <h5 class="mt-2 mb-1">{{ name }}</h5>
+        <p class="text-primary fw-semibold mb-0">Rs. {{ start_price }} - Rs. {{ end_price }}</p>
+        {% if available %}
+            <small class="text-success fw-semibold">In stock</small>
+        {% else %}
+            <small class="text-danger fw-semibold">Out of stock</small>
+        {% endif %}
+    </div>
+</div>

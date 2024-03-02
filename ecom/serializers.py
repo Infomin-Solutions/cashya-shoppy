@@ -2,6 +2,7 @@
 from rest_framework import serializers
 from . import models
 from rest_framework.serializers import ValidationError
+from django.db.models import Min, Max
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -51,12 +52,20 @@ class ProductSerializer(serializers.ModelSerializer):
         many=True, read_only=True, source='productimage_set')
     variants = ProductVariantSerializer(
         many=True, read_only=True)
+    start_price = serializers.SerializerMethodField(read_only=True)
+    end_price = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Product
         fields = [
-            'id', 'name', 'description', 'category', 'available', 'variants', 'images']
+            'id', 'name', 'description', 'category', 'available', 'variants', 'images', 'start_price', 'end_price']
         read_only_fields = ['id', 'variants', 'images']
+
+    def get_start_price(self, obj):
+        return obj.variants.aggregate(Min('price'))['price__min']
+
+    def get_end_price(self, obj):
+        return obj.variants.aggregate(Max('price'))['price__max']
 
 
 class CategoryProductSerializer(serializers.ModelSerializer):

@@ -49,8 +49,8 @@ class ProductVariant(models.Model):
     product = models.ForeignKey(
         Product, on_delete=models.CASCADE, related_name='variants')
     name = models.CharField(max_length=100)
-    mrp = models.DecimalField(max_digits=10, decimal_places=2)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    mrp = models.FloatField()
+    price = models.FloatField()
     stock = models.IntegerField()
     available = models.BooleanField(default=True)
     sort_order = models.PositiveIntegerField(default=0)
@@ -107,7 +107,7 @@ class Order(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='orders')
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    total = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, blank=True, null=True)
 
@@ -134,8 +134,8 @@ class OrderItem(models.Model):
     order = models.ForeignKey(
         Order, on_delete=models.CASCADE, related_name='items')
     quantity = models.PositiveIntegerField(default=1)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    total = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.FloatField()
+    total = models.FloatField()
 
 
 class OrderStatus(models.Model):

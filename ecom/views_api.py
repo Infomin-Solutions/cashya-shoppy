@@ -39,6 +39,8 @@ class CategoryProductViewSet(ReadOnlyModelViewSet):
     queryset = models.Category.objects.all()
     serializer_class = serializers.CategoryProductSerializer
     permission_classes = (AllowAny, )
+    pagination_class = None
+    format_kwarg = None  # to access from other views
 
 
 class CartViewSet(ViewSet):
