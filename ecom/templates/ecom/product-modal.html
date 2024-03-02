@@ -1,0 +1,49 @@
+<div class="modal fade" id="quickBuy" tabindex="-1" aria-labelledby="quickBuyLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <!-- <h1 class="modal-title fs-5" id="quickBuyLabel">Modal title</h1> -->
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                ...
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-success text-uppercase w-100" data-bs-dismiss="modal">Add to
+                    Cart</button>
+                <button type="button" class="btn w-100 fw-semibold">View Full Details <i
+                        class="fa fa-arrow-right ms-2"></i></button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    $(document).ready(function () {
+        $('#quickBuy').on('show.bs.modal', function (event) {
+            // Button that triggered the modal
+            var button = $(event.relatedTarget);
+            // Extract info from data-bs-* attributes
+            var productId = button.data('bs-product');
+            // If necessary, you could initiate an Ajax request here
+            // and then do the updating in a callback.
+            $.ajax({
+                url: `${BASE_API_URL}/products/${productId}/`,
+                type: 'GET',
+                success: function (data) {
+                    // Do something with the returned data
+                    console.log(data);
+                },
+                error: function (error) {
+                    // Handle error
+                    console.log(error);
+                }
+            });
+            // Update the modal's content.
+            // var modalTitle = $(this).find('.modal-title');
+            // var modalBodyInput = $(this).find('.modal-body input');
+
+            // modalTitle.text(`New message to ${recipient}`);
+            // modalBodyInput.val(recipient);
+        });
+    });
+</script>

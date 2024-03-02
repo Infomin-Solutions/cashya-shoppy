@@ -28,7 +28,7 @@ class ProductVariantSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.ProductVariant
         fields = [
-            'id', 'product', 'name', 'mrp', 'price', 'stock', 'available', 'sort_order']
+            'id', 'name', 'mrp', 'price', 'available']
         read_only_fields = ['id']
 
 
@@ -65,7 +65,9 @@ class ProductSerializer(serializers.ModelSerializer):
         return obj.variants.aggregate(Min('price'))['price__min']
 
     def get_end_price(self, obj):
-        return obj.variants.aggregate(Max('price'))['price__max']
+        if obj.variants.count() > 1:
+            return obj.variants.aggregate(Max('price'))['price__max']
+        return None
 
 
 class CategoryProductSerializer(serializers.ModelSerializer):

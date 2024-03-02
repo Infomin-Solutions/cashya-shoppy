@@ -28,7 +28,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CORS_URLS_REGEX = r"^/api/.*$"
+CORS_URLS_REGEX = r".*/api/.*$"
 
 CORS_ALLOW_ALL_ORIGINS = True
 
