@@ -33,12 +33,16 @@ class ProductVariantSerializer(serializers.ModelSerializer):
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField(read_only=True)
     image_url = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.ProductImage
-        fields = ['id', 'product', 'image', 'image_url', 'sort_order']
+        fields = ['id', 'name', 'image_url']
         read_only_fields = ['id', 'image_url']
+
+    def get_name(self, obj):
+        return obj.image.name
 
     def get_image_url(self, obj):
         request = self.context.get('request')
@@ -102,9 +106,10 @@ class CartItemSerializer(serializers.ModelSerializer):
         }
 
     def validate_product_variant(self, value):
-        if self.context.get('create') and models.CartItem.objects.filter(cart_id=self.context['cart'], product_variant=value).exists():
-            raise serializers.ValidationError(
-                'Product variant already exists in the cart')
+        cart_items = models.CartItem.objects.filter(
+            cart_id=self.context['cart'], product_variant=value)
+        if self.context.get('create') and cart_items.exists():
+            cart_items.delete()
         return value
 
     def create(self, validated_data):
