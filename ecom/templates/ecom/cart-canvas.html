@@ -104,6 +104,12 @@
                 type: 'GET',
                 success: function (data) {
                     $('#cart-products').empty();
+                    if (data.products.length === 0) {
+                        let elem = $('<p>');
+                        elem.text("No Items in your Cart")
+                        $('#cart-products').append(elem)
+                        return
+                    }
                     data.products.forEach(product => {
                         let productHtml = $('#cart-product-sample').clone(true);
                         productHtml.removeClass('d-none');
