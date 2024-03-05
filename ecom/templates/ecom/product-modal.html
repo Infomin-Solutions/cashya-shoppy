@@ -161,7 +161,7 @@
                     quantity: quantity
                 },
                 success: function (data) {
-                    console.log(data);
+                    $('#cartCanvas').trigger('show.bs.offcanvas')
                 },
                 error: function (error) {
                     console.log(error);
