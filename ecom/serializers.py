@@ -88,14 +88,16 @@ class CategoryProductSerializer(serializers.ModelSerializer):
 
 class CartItemSerializer(serializers.ModelSerializer):
     product = serializers.SerializerMethodField(read_only=True)
+    image = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.CartItem
-        fields = ['product_variant', 'product', 'quantity']
+        fields = [
+            'product_variant', 'product', 'quantity', 'image']
         read_only_fields = ['id', 'product']
         lookup_field = 'product_variant'
 
-    def get_product(self, obj):
+    def get_product(self, obj: models.CartItem):
         return {
             'product_id': obj.product_variant.product.id,
             'product_name': obj.product_variant.product.name,
@@ -104,6 +106,18 @@ class CartItemSerializer(serializers.ModelSerializer):
             'price': obj.product_variant.price,
             'mrp': obj.product_variant.mrp,
         }
+
+    def get_image(self, obj: models.CartItem):
+        request = self.context.get('request')
+        if obj.product_variant.product.images.first():
+            image = obj.product_variant.product.images.first()
+            name = image.name
+            image_url = request.build_absolute_uri(image.image.url)
+            return {
+                'name': name,
+                'image_url': image_url
+            }
+        return None
 
     def validate_product_variant(self, value):
         cart_items = models.CartItem.objects.filter(

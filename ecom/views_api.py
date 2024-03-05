@@ -50,14 +50,16 @@ class CartViewSet(ViewSet):
 
     def list(self, request):
         cart, _ = models.Cart.objects.get_or_create(user=request.user)
-        serializer = serializers.CartSerializer(cart)
+        serializer = serializers.CartSerializer(
+            cart, context={'request': request})
         return Response(serializer.data)
 
     def retrieve(self, request, pk):
         cart, _ = models.Cart.objects.get_or_create(user=request.user)
         cart_item = get_object_or_404(
             models.CartItem, cart=cart, product_variant_id=pk)
-        serializer = serializers.CartItemSerializer(cart_item)
+        serializer = serializers.CartItemSerializer(
+            cart_item, context={'request': request})
         return Response(serializer.data)
 
     def create(self, request):
