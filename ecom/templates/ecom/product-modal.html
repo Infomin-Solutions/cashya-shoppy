@@ -1,16 +1,52 @@
-<div class="modal fade" id="quickBuy" tabindex="-1" aria-labelledby="quickBuyLabel" aria-hidden="true">
+<style>
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+</style>
+<div class="modal fade" id="quickBuy" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <!-- <h1 class="modal-title fs-5" id="quickBuyLabel">Modal title</h1> -->
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <!-- <h1 class="modal-title fs-5" id="modal-product-name">Product 3</h1> -->
+                <button id="modal-close" type="button" class="btn-close" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                ...
+                <div class="row align-items-center gy-4">
+                    <div class="col-4">
+                        <img id="modal-product-image" src="" alt="" class="w-100">
+                    </div>
+                    <div class="col-8">
+                        <h4 id="modal-product-name"></h4>
+                        <p class="fs-5 mb-0">
+                            <span class="text-black-50 text-decoration-line-through" id="modal-fake-price"></span>
+                            <span class="text-danger ps-2" id="modal-original-price"></span>
+                        </p>
+                        <small class="fw-semibold" id="modal-variant-stock"></small>
+                    </div>
+                    <div id="modal-product-variants" class="col-12 text-center"></div>
+                    <div class="col-12 d-flex justify-content-center">
+                        <div class="input-group mb-3" style="width: fit-content;">
+                            <button class="btn btn-primary rounded-start-circle" type="button" id="modal-quantity-minus"
+                                style="width: 40px;">
+                                <i class="fa fa-minus"></i>
+                            </button>
+                            <input type="number" class="form-control text-center" value="1" style="width: 60px;"
+                                id="modal-quantity">
+                            <button class="btn btn-primary rounded-end-circle" type="button" id="modal-quantity-plus"
+                                style="width: 40px;">
+                                <i class="fa fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-success text-uppercase w-100" data-bs-dismiss="modal">Add to
-                    Cart</button>
+                <button type="button" class="btn btn-success text-uppercase w-100" id="modal-add-to-cart"
+                    data-bs-toggle="offcanvas" data-bs-target="#cartCanvas" aria-controls="cartCanvas">
+                    Add to Cart</button>
                 <button type="button" class="btn w-100 fw-semibold">View Full Details <i
                         class="fa fa-arrow-right ms-2"></i></button>
             </div>
@@ -19,6 +55,7 @@
 </div>
 <script>
     $(document).ready(function () {
+
         $('#quickBuy').on('show.bs.modal', function (event) {
             // Button that triggered the modal
             var button = $(event.relatedTarget);
@@ -32,18 +69,106 @@
                 success: function (data) {
                     // Do something with the returned data
                     console.log(data);
+                    $('#modal-product-name').text(data.name);
+                    $('#modal-product-image').attr('src', data.images[0].image_url);
+                    $('#modal-product-image').attr('alt', data.images[0].name);
+
+                    $('#modal-product-variants').empty();
+                    data.variants.forEach(variant => {
+                        let inputElement = $('<input>', {
+                            type: 'radio',
+                            class: 'btn-check',
+                            name: 'modal-variants',
+                            id: `modal-variant-${variant.id}`,
+                            autocomplete: 'off',
+                            'data-bs-variant': variant.id
+                        });
+
+                        let labelElement = $('<label>', {
+                            class: 'btn btn-secondary-outline',
+                            for: `modal-variant-${variant.id}`,
+                            text: variant.name
+                        });
+
+                        inputElement.on('change', function () {
+                            variant = data.variants.find(v => v.id == $(this).data('bs-variant'));
+                            $('#modal-fake-price').text(`Rs. ${variant.mrp.toLocaleString('en-IN')}`);
+                            $('#modal-original-price').text(`Rs. ${variant.price.toLocaleString('en-IN')}`);
+                            if (variant.available) {
+                                $('#modal-variant-stock').text(`In stock`);
+                                $('#modal-variant-stock').removeClass('text-danger');
+                                $('#modal-variant-stock').addClass('text-success');
+                                $('#modal-add-to-cart').prop('disabled', false);
+                            } else {
+                                $('#modal-variant-stock').text(`Out of stock`);
+                                $('#modal-variant-stock').removeClass('text-success');
+                                $('#modal-variant-stock').addClass('text-danger');
+                                $('#modal-add-to-cart').prop('disabled', true);
+                            }
+                        });
+                        $('#modal-product-variants').append(inputElement, labelElement);
+                    });
+                    $('input[type=radio][name=modal-variants]').first().prop('checked', true).trigger('change');
                 },
                 error: function (error) {
                     // Handle error
                     console.log(error);
                 }
             });
-            // Update the modal's content.
-            // var modalTitle = $(this).find('.modal-title');
-            // var modalBodyInput = $(this).find('.modal-body input');
+        }).on('hidden.bs.modal', function (event) {
+            // Reset the modal
+            $('#modal-product-name').text('Loading ...');
+            $('#modal-product-image').attr('src', '');
+            $('#modal-product-image').attr('alt', '');
+            $('#modal-product-variants').empty();
+            $('#modal-fake-price').text('Rs. ...');
+            $('#modal-original-price').text('Rs. ...');
+            $('#modal-variant-stock').text('');
+            $('#modal-quantity').val(1);
+        });
 
-            // modalTitle.text(`New message to ${recipient}`);
-            // modalBodyInput.val(recipient);
+
+        $('#modal-quantity-minus').on('click', function () {
+            let quantity = parseInt($('#modal-quantity').val());
+            $('#modal-quantity').val(quantity - 1).trigger('input');
+        });
+
+        $('#modal-quantity-plus').on('click', function () {
+            let quantity = parseInt($('#modal-quantity').val());
+            $('#modal-quantity').val(quantity + 1).trigger('input');
+        });
+
+        $('#modal-quantity').on('input', function () {
+            let quantity = parseInt($('#modal-quantity').val());
+
+            if (quantity >= 1 && quantity <= 50) { }
+            else if (quantity > 50) {
+                $('#modal-quantity').val(50);
+            }
+            else {
+                $('#modal-quantity').val(1);
+            }
+        });
+
+        $('#modal-add-to-cart').on('click', function () {
+            let variantId = $('input[name=modal-variants]:checked').data('bs-variant');
+            let quantity = $('#modal-quantity').val();
+            $.ajax({
+                url: `${BASE_API_URL}/cart/`,
+                type: 'POST',
+                data: {
+                    product_variant: variantId,
+                    quantity: quantity
+                },
+                success: function (data) {
+                    console.log(data);
+                },
+                error: function (error) {
+                    console.log(error);
+                }
+            }).then(() => {
+                $('#modal-close').trigger('click');
+            })
         });
     });
 </script>
