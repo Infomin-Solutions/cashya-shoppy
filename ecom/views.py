@@ -21,7 +21,7 @@ def category_products_view(request):
     data = json.loads(json.dumps(res))
     return render(
         request,
-        'ecom/category-products.html',
+        'ecom/category-products.dhtml',
         context={
             'data': data
         }
@@ -31,7 +31,7 @@ def category_products_view(request):
 def product_card_view(request):
     return render(
         request,
-        'ecom/product-card.html',
+        'ecom/product-card.dhtml',
         context={}
     )
 
@@ -40,5 +40,13 @@ def products_view(request):
     return render(
         request,
         'ecom/products.html',
+        context={}
+    )
+
+
+def product_detail(request):
+    return render(
+        request,
+        'ecom/product-detail.html',
         context={}
     )

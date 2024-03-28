@@ -4,97 +4,68 @@
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body pt-0 pe-4 pb-4 ps-4">
-        <div class="row py-2 border-bottom cart-product d-none" id="cart-product-sample">
-            <div class="col-5">
-                <img src="" alt="" class="w-100 cart-product-image">
-            </div>
-            <div class="col-7">
-                <h5 class="fw-semibold text-truncate mb-0 cart-product-name"></h5>
-                <small class="text-black-50 cart-product-variant"></small>
-                <p class="fs-6 m-1 fw-semibold">
-                    <span class="text-black-50 text-decoration-line-through cart-product-fake"></span>
-                    <span class="text-success ps-2 cart-product-price"></span>
-                </p>
-                <div class="d-flex">
-                    <div class="input-group mb-3" style="width: fit-content;">
-                        <button class="btn btn-primary rounded-start-circle cart-product-minus" type="button"
-                            style="width: 40px;" data-bs-product="1">
-                            <i class="fa fa-minus"></i>
-                        </button>
-                        <input type="number" class="form-control text-center cart-product-quantity" value="1"
-                            style="width: 60px;" data-bs-product="1">
-                        <button class="btn btn-primary rounded-end-circle cart-product-plus" type="button"
-                            style="width: 40px;" data-bs-product="1">
-                            <i class="fa fa-plus"></i>
-                        </button>
-                    </div>
-                    <button type="button" class="btn btn-outline-danger ms-2 mb-3 cart-product-delete"
-                        data-bs-product="1">
-                        <i class="fa fa-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
         <div id="cart-products"></div>
     </div>
 </div>
 <script>
     $(document).ready(function () {
-        $('.cart-product-minus').on('click', function () {
-            let input = $(this).parent().find('.cart-product-quantity');
-            let quantity = parseInt(input.val());
-            input.val(quantity - 1).trigger('input').trigger('change');
-        });
-
-        $('.cart-product-plus').on('click', function () {
-            let input = $(this).parent().find('.cart-product-quantity');
-            let quantity = parseInt(input.val());
-            input.val(quantity + 1).trigger('input').trigger('change');
-        });
-
-        $('.cart-product-quantity').on('input', function () {
-            let input = $(this).parent().find('.cart-product-quantity');
-            let quantity = parseInt(input.val());
-
-            if (quantity >= 1 && quantity <= 50) { }
-            else if (quantity > 50) {
-                input.val(50);
-            }
-            else {
-                input.val(1);
-            }
-        }).on('change', function () {
-            let input = $(this).parent().find('.cart-product-quantity');
-
-            let productId = $(this).attr('data-bs-product');
-            $.ajax({
-                url: `${BASE_API_URL}/cart/${productId}/`,
-                type: 'PATCH',
-                data: {
-                    quantity: input.val()
-                },
-                success: function (data) {
-                    console.log(data);
-                },
-                error: function (error) {
-                    console.log(error);
-                }
+        const makeFunctionalble = (elem) => {
+            elem.find('.cart-product-minus').on('click', function () {
+                let input = $(this).parent().find('.cart-product-quantity');
+                let quantity = parseInt(input.val());
+                input.val(quantity - 1).trigger('input').trigger('change');
             });
-        });
 
-        $('.cart-product-delete').on('click', function () {
-            let productId = $(this).attr('data-bs-product');
-            $.ajax({
-                url: `${BASE_API_URL}/cart/${productId}/`,
-                type: 'DELETE',
-                success: function (data) {
-                    $('#cartCanvas').trigger('show.bs.offcanvas')
-                },
-                error: function (error) {
-                    console.log(error);
-                }
+            elem.find('.cart-product-plus').on('click', function () {
+                let input = $(this).parent().find('.cart-product-quantity');
+                let quantity = parseInt(input.val());
+                input.val(quantity + 1).trigger('input').trigger('change');
             });
-        });
+
+            elem.find('.cart-product-quantity').on('input', function () {
+                let input = $(this).parent().find('.cart-product-quantity');
+                let quantity = parseInt(input.val());
+
+                if (quantity >= 1 && quantity <= 50) { }
+                else if (quantity > 50) {
+                    input.val(50);
+                }
+                else {
+                    input.val(1);
+                }
+            }).on('change', function () {
+                let input = $(this).parent().find('.cart-product-quantity');
+
+                let productId = $(this).attr('data-bs-product');
+                $.ajax({
+                    url: `${BASE_API_URL}/cart/${productId}/`,
+                    type: 'PATCH',
+                    data: {
+                        quantity: input.val()
+                    },
+                    success: function (data) {
+                        console.log(data);
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            elem.find('.cart-product-delete').on('click', function () {
+                let productId = $(this).attr('data-bs-product');
+                $.ajax({
+                    url: `${BASE_API_URL}/cart/${productId}/`,
+                    type: 'DELETE',
+                    success: function (data) {
+                        $('#cartCanvas').trigger('show.bs.offcanvas')
+                    },
+                    error: function (error) {
+                        console.log(error);
+                    }
+                });
+            });
+        }
 
         $('#cartCanvas').on('show.bs.offcanvas', function (event) {
             $.ajax({
@@ -109,21 +80,41 @@
                         return
                     }
                     data.products.forEach(product => {
-                        let productHtml = $('#cart-product-sample').clone(true);
-                        productHtml.removeClass('d-none');
-                        productHtml.attr('id', `cart-product-${product.product_variant}`);
-                        productHtml.find('.cart-product-image').attr('src', product.image.image_url);
-                        productHtml.find('.cart-product-image').attr('alt', product.image.name);
-                        productHtml.find('.cart-product-name').text(product.product.product_name);
-                        productHtml.find('.cart-product-variant').text(product.product.variant_name);
-                        productHtml.find('.cart-product-fake').text(`Rs. ${product.product.mrp.toLocaleString('en-IN')}`);
-                        productHtml.find('.cart-product-price').text(`Rs. ${product.product.price.toLocaleString('en-IN')}`);
-                        productHtml.find('.cart-product-quantity').val(product.quantity);
-                        productHtml.find('.cart-product-quantity').attr('data-bs-product', product.product_variant);
-                        productHtml.find('.cart-product-minus').attr('data-bs-product', product.product_variant);
-                        productHtml.find('.cart-product-plus').attr('data-bs-product', product.product_variant);
-                        productHtml.find('.cart-product-delete').attr('data-bs-product', product.product_variant);
-                        $('#cart-products').append(productHtml);
+                        let productHtml = /* html */ `
+                            <div class="row py-2 border-bottom cart-product">
+                                <div class="col-5">
+                                    <img src="${product.image.image_url}" alt="${product.image.name}" class="w-100 cart-product-image">
+                                </div>
+                                <div class="col-7">
+                                    <h5 class="fw-semibold text-truncate mb-0">${product.product.product_name}</h5>
+                                    <small class="text-black-50">${product.product.variant_name}</small>
+                                    <p class="fs-6 m-1 fw-semibold">
+                                        <span class="text-black-50 text-decoration-line-through">Rs. ${product.product.mrp.toLocaleString('en-IN')}</span>
+                                        <span class="text-success ps-2">Rs. ${product.product.price.toLocaleString('en-IN')}</span>
+                                    </p>
+                                    <div class="d-flex">
+                                        <div class="input-group mb-3" style="width: fit-content;">
+                                            <button class="btn btn-primary rounded-start-circle cart-product-minus" type="button"
+                                                style="width: 40px;" data-bs-product="${product.product_variant}">
+                                                <i class="fa fa-minus"></i>
+                                            </button>
+                                            <input type="number" class="form-control text-center cart-product-quantity" value="${product.quantity}"
+                                                style="width: 60px;" data-bs-product="${product.product_variant}">
+                                            <button class="btn btn-primary rounded-end-circle cart-product-plus" type="button"
+                                                style="width: 40px;" data-bs-product="${product.product_variant}">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                        <button type="button" class="btn btn-outline-danger ms-2 mb-3 cart-product-delete"
+                                            data-bs-product="${product.product_variant}">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>`;
+                        let elem = $(productHtml);
+                        makeFunctionalble(elem);
+                        $('#cart-products').append(elem);
                     });
                 },
                 error: function (error) {
