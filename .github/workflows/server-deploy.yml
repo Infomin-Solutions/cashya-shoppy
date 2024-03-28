@@ -38,4 +38,4 @@ jobs:
 
       - name: Install & Restart Apache
         run: |
-          sshpass -p '${{ secrets.SSH_ROOT_PASS }}' ssh -o StrictHostKeyChecking=no root@${{ vars.SSH_HOST }} 'venv\bin\pip install -r requirements.txt && venv\bin\python manage.py collectstatic --no-input && service httpd restart'
+          sshpass -p '${{ secrets.SSH_ROOT_PASS }}' ssh -o StrictHostKeyChecking=no root@${{ vars.SSH_HOST }} 'cd /home/infominsolutions/cashya_in && venv/bin/pip install -r requirements.txt && venv/bin/python manage.py collectstatic --no-input && service httpd restart'
