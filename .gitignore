@@ -163,3 +163,4 @@ media
 migrations
 /static
 /bootstrap
+prod.env
