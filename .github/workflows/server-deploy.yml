@@ -1,0 +1,41 @@
+name: Server Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Install FTP & SSH
+        run: sudo apt-get update && sudo apt-get install -y ftp && sudo apt-get install -y openssh-client && sudo apt-get install -y sshpass && sudo apt install -y zip
+
+      - name: Zip Files
+        run: |
+          sudo rm -r .vscode
+          rm sample.env
+          zip -r files.zip *
+          cd ..
+
+      - name: Transfer Zip via FTP
+        run: |
+          ftp -inv ${{ vars.SSH_HOST }} << EOF
+          user ${{ secrets.SSH_USER }} ${{ secrets.SSH_USER_PASS }}
+          cd cashya_in
+          put files.zip
+          quit
+          EOF
+
+      - name: Unzip Files
+        run: |
+          sshpass -p '${{ secrets.SSH_ROOT_PASS }}' ssh -o StrictHostKeyChecking=no root@${{ vars.SSH_HOST }} 'cd /home/infominsolutions/cashya_in && unzip -o files.zip && sudo rm files.zip'
+
+      - name: Install & Restart Apache
+        run: |
+          sshpass -p '${{ secrets.SSH_ROOT_PASS }}' ssh -o StrictHostKeyChecking=no root@${{ vars.SSH_HOST }} 'venv\bin\pip install -r requirements.txt && venv\bin\python manage.py collectstatic --no-input && service httpd restart'
