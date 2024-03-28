@@ -1,7 +1,9 @@
 {
+    "name": "Django Ecommerce",
+    "version": 2,
     "builds": [
         {
-            "src": "myproject/wsgi.py",
+            "src": "*py",
             "use": "@vercel/python"
         }
     ],
