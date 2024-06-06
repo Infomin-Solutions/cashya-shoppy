@@ -1,4 +1,4 @@
-from . import views_api as views
+from . import views
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -9,6 +9,3 @@ router.register(
     r'category-products', views.CategoryProductViewSet, basename='category-products')
 router.register(r'cart', views.CartViewSet, basename='cart')
 router.register(r'orders', views.OrderViewSet, basename='order')
-
-
-urlpatterns = router.urls

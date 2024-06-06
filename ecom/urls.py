@@ -1,9 +1,7 @@
 from . import views
-from django.urls import path, include
+from django.urls import path
 
 urlpatterns = [
-    path('api/', include('ecom.urls_api')),
-
     path('base', views.base_view, name='base'),
     path(
         'category-products', views.category_products_view, name='category-products'),

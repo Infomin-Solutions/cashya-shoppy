@@ -1,6 +1,6 @@
 # serializers.py
 from rest_framework import serializers
-from . import models
+from ecom import models
 from rest_framework.serializers import ValidationError
 from django.db.models import Min, Max
 

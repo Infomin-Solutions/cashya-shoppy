@@ -1,6 +1,6 @@
 import json
 from . import models
-from . import views_api as views
+from .api.views import CategoryProductViewSet
 from django.shortcuts import render
 
 # Create your views here.
@@ -15,7 +15,7 @@ def base_view(request):
 
 
 def category_products_view(request):
-    viewset = views.CategoryProductViewSet()
+    viewset = CategoryProductViewSet()
     viewset.request = request
     res = viewset.list(request).data
     data = json.loads(json.dumps(res))

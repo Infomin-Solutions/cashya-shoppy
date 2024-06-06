@@ -1,4 +1,4 @@
-from . import models
+from ecom import models
 from . import serializers
 
 from django.shortcuts import get_object_or_404
