@@ -141,3 +141,36 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
                 order=serializer.instance, status=0)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CouponViewSet(ViewSet, generics.RetrieveAPIView, generics.DestroyAPIView):
+    queryset = models.Coupon.objects.all()
+    serializer_class = serializers.CouponSerializer
+    authentication_classes = (JWTAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated, )
+    pagination_class = None
+
+    def retrieve(self, request, pk=None):
+        cart, _ = models.Cart.objects.get_or_create(user=request.user)
+        serializer = serializers.CouponSerializer(
+            data={'code': cart.coupon.code if cart.coupon else None}, context={'cart': cart})
+        if serializer.is_valid():
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def create(self, request):
+        cart, _ = models.Cart.objects.get_or_create(user=request.user)
+        serializer = serializers.CouponSerializer(
+            data=request.data, context={'cart': cart})
+        if serializer.is_valid():
+            cart.coupon = models.Coupon.objects.get(
+                code=serializer.validated_data['code'])
+            cart.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk=None):
+        cart, _ = models.Cart.objects.get_or_create(user=request.user)
+        cart.coupon = None
+        cart.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)

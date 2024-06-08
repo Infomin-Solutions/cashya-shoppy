@@ -103,3 +103,10 @@ class OrderAdmin(admin.ModelAdmin):
         if obj and not request.user.is_superuser:
             return fields + ['user', 'total']
         return fields
+
+
+@admin.register(models.Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = [
+        'code', 'discount', 'coupon_type', 'valid_from', 'valid_to', 'active', 'quantity']
+    search_fields = ['code']

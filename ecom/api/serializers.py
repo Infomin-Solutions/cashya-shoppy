@@ -3,6 +3,8 @@ from rest_framework import serializers
 from ecom import models
 from rest_framework.serializers import ValidationError
 from django.db.models import Min, Max
+from django.utils import timezone
+from ecom import utils
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -138,11 +140,39 @@ class CartItemSerializer(serializers.ModelSerializer):
 class CartSerializer(serializers.ModelSerializer):
     products = CartItemSerializer(
         many=True, read_only=True, source='cartitem_set')
+    coupon = serializers.SerializerMethodField(read_only=True)
+    sub_total = serializers.SerializerMethodField(read_only=True)
+    discount = serializers.SerializerMethodField(read_only=True)
+    shipping = serializers.SerializerMethodField(read_only=True)
+    tax = serializers.SerializerMethodField(read_only=True)
+    total = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Cart
-        fields = ['user', 'products']
-        read_only_fields = ['user', 'products']
+        fields = [
+            'user', 'products', 'coupon', 'sub_total', 'discount', 'shipping', 'tax', 'total']
+        read_only_fields = [
+            'user', 'products', 'coupon', 'sub_total', 'discount', 'shipping', 'tax', 'total']
+
+    def get_coupon(self, obj):
+        if obj.coupon:
+            return obj.coupon.code
+        return None
+
+    def get_sub_total(self, obj):
+        return obj.sub_total
+
+    def get_discount(self, obj):
+        return utils.calculate_discount(obj)
+
+    def get_shipping(self, obj):
+        return utils.calculate_shipping(obj)
+
+    def get_tax(self, obj):
+        return utils.calculate_tax(obj)
+
+    def get_total(self, obj):
+        return utils.calculate_total(obj)
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
@@ -184,3 +214,26 @@ class OrderSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['user'] = self.context['user']
         return super().create(validated_data)
+
+
+class CouponSerializer(serializers.Serializer):
+    code = serializers.CharField(max_length=100, required=True)
+
+    def validate_code(self, code: str):
+        code = code.upper()
+        cart = self.context.get('cart')
+        if not cart:
+            raise ValidationError('Cart is required for coupon validation')
+        coupon = models.Coupon.objects.filter(code=code).first()
+        if not coupon:
+            raise ValidationError('Invalid coupon code')
+        if not coupon.active or (coupon.quantity and coupon.quantity <= 0):
+            raise ValidationError('Coupon is not available')
+        if coupon.valid_from and coupon.valid_from > timezone.now():
+            raise ValidationError('Coupon is not available yet')
+        if coupon.valid_to and coupon.valid_to < timezone.now():
+            raise ValidationError('Coupon has expired')
+        if coupon.minimum_order_value and cart.sub_total < coupon.minimum_order_value:
+            raise ValidationError(
+                f"Minimum order value should be {coupon.minimum_order_value}")
+        return code

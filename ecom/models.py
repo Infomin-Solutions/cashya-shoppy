@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -72,12 +73,46 @@ class ProductImage(models.Model):
         ordering = ['sort_order']
 
 
+class Coupon(models.Model):
+    code = models.CharField(max_length=100, unique=True)
+    discount = models.FloatField()
+    coupon_type = models.CharField(choices=(
+        ('percentage', 'Percentage'),
+        ('fixed', 'Fixed')
+    ), max_length=10)
+    active = models.BooleanField(default=True)
+    valid_from = models.DateTimeField(
+        help_text='Leave Empty if always active', blank=True, null=True)
+    valid_to = models.DateTimeField(
+        help_text='Leave Empty if always active', blank=True, null=True)
+    minimum_order_value = models.FloatField(
+        help_text='Leave Empty to use default', blank=True, null=True)
+    quantity = models.PositiveIntegerField(
+        help_text='Leave Empty if unlimited', blank=True, null=True, default=1)
+
+    def save(self, *args, **kwargs):
+        self.code = self.code.upper()
+        super().save(*args, **kwargs)
+
+    def __str__(self) -> str:
+        return self.code
+
+
 class Cart(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='cart')
     product_variants = models.ManyToManyField(
         ProductVariant, through='CartItem', related_name='carts')
+    coupon = models.ForeignKey(
+        Coupon, on_delete=models.SET_NULL, blank=True, null=True)
+
+    @property
+    def sub_total(self):
+        total = 0
+        for item in self.product_variants.through.objects.filter(cart=self):
+            total += item.product_variant.price * item.quantity
+        return round(total, 2)
 
     def __str__(self):
         return f"{self.id} {self.user.username}'s cart"
