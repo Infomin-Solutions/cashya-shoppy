@@ -1,10 +1,8 @@
-# serializers.py
-from rest_framework import serializers
-from ecom import models
-from rest_framework.serializers import ValidationError
-from django.db.models import Min, Max
-from django.utils import timezone
 from ecom import utils
+from ecom import models
+from django.db.models import Min, Max
+from rest_framework import serializers
+from rest_framework.serializers import ValidationError
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -227,13 +225,4 @@ class CouponSerializer(serializers.Serializer):
         coupon = models.Coupon.objects.filter(code=code).first()
         if not coupon:
             raise ValidationError('Invalid coupon code')
-        if not coupon.active or (coupon.quantity and coupon.quantity <= 0):
-            raise ValidationError('Coupon is not available')
-        if coupon.valid_from and coupon.valid_from > timezone.now():
-            raise ValidationError('Coupon is not available yet')
-        if coupon.valid_to and coupon.valid_to < timezone.now():
-            raise ValidationError('Coupon has expired')
-        if coupon.minimum_order_value and cart.sub_total < coupon.minimum_order_value:
-            raise ValidationError(
-                f"Minimum order value should be {coupon.minimum_order_value}")
-        return code
+        return utils.validate_coupon(cart, coupon)
