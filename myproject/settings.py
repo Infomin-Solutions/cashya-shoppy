@@ -119,6 +119,33 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 24,
 }
 
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(BASE_DIR, 'error.log'),
+            'maxBytes': 1024*1024*5,  # 5MB
+            'backupCount': 3,
+            'formatter': 'simple',
+        }
+    },
+    'formatters': {
+        'simple': {
+            'format': '\n%(asctime)s %(levelname)s %(message)s',
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        }
+    },
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
 
