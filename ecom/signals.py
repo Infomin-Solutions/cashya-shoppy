@@ -30,7 +30,7 @@ The following function is used to remove the cart items if the product or produc
 '''
 
 
-def cart_product_available_check(sender, instance: models.Product):
+def cart_product_available_check(instance: models.Product):
     variants = models.ProductVariant.objects.filter(product=instance)
     if not instance.available:
         variants.update(available=False)
