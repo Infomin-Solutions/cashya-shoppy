@@ -32,6 +32,13 @@ def calculate_discount(cart):
         pass
 
 
+def calculate_payment_fee(order_amount):
+    pg_charge = 2 / 100  # 2% payment gateway charge
+    fee_multiplier = 1 - pg_charge
+    total_amount = order_amount / fee_multiplier
+    return round(total_amount, 2)
+
+
 def calculate_shipping(cart):
     return 0
 
