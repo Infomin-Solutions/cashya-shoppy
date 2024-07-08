@@ -43,6 +43,50 @@ class CategoryProductViewSet(ReadOnlyModelViewSet):
     format_kwarg = None  # to access from other views
 
 
+class WhishlistViewSet(ViewSet, generics.ListAPIView):
+    permission_classes = (IsAuthenticated, )
+    authentication_classes = (JWTAuthentication, SessionAuthentication)
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return serializers.WishlistSerializer
+        return serializers.WishlistCreateSerializer
+
+    def get_queryset(self):
+        return models.Wishlist.objects.filter(user=self.request.user)
+
+    def retrieve(self, request, pk):
+        wishlist = get_object_or_404(
+            models.Wishlist, product_id=pk, user=request.user)
+        serializer = serializers.WishlistSerializer(
+            wishlist, context={'request': request})
+        return Response(serializer.data)
+
+    def create(self, request):
+        serializer = serializers.WishlistCreateSerializer(
+            data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            product_id = serializer.validated_data['product'].id
+            product = models.Product.objects.filter(id=product_id)
+            if product.exists():
+                wishlist, created = models.Wishlist.objects.get_or_create(
+                    user=request.user, product=product.first())
+                if created:
+                    return Response(serializers.WishlistSerializer(
+                        wishlist,
+                        context={'request': request}
+                    ).data, status=status.HTTP_201_CREATED)
+                return Response({'detail': 'Product already in wishlist'}, status=status.HTTP_200_OK)
+            return Response({'detail': 'Product not found'}, status=status.HTTP_404_NOT_FOUND)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def destroy(self, request, pk):
+        wishlist = get_object_or_404(
+            models.Wishlist, product_id=pk, user=request.user)
+        wishlist.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class CartViewSet(ViewSet):
     permission_classes = (IsAuthenticated, )
     authentication_classes = (JWTAuthentication, SessionAuthentication)
@@ -143,7 +187,7 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class CouponViewSet(ViewSet, generics.RetrieveAPIView, generics.DestroyAPIView):
+class CouponViewSet(ViewSet):
     queryset = models.Coupon.objects.all()
     serializer_class = serializers.CouponSerializer
     authentication_classes = (JWTAuthentication, SessionAuthentication)

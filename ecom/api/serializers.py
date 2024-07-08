@@ -58,12 +58,13 @@ class ProductSerializer(serializers.ModelSerializer):
         many=True, read_only=True)
     start_price = serializers.SerializerMethodField(read_only=True)
     end_price = serializers.SerializerMethodField(read_only=True)
+    whishlist = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Product
         fields = [
-            'id', 'name', 'description', 'category', 'available', 'variants', 'images', 'start_price', 'end_price']
-        read_only_fields = ['id', 'variants', 'images']
+            'id', 'name', 'description', 'category', 'available', 'whishlist', 'variants', 'images', 'start_price', 'end_price']
+        read_only_fields = ['id', 'variants', 'images', 'whishlist']
 
     def get_start_price(self, obj):
         return obj.variants.aggregate(Min('price'))['price__min']
@@ -72,6 +73,27 @@ class ProductSerializer(serializers.ModelSerializer):
         if obj.variants.count() > 1:
             return obj.variants.aggregate(Max('price'))['price__max']
         return None
+
+    def get_whishlist(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return models.Wishlist.objects.filter(
+                user=request.user, product=obj).exists()
+        return False
+
+
+class WishlistSerializer(serializers.ModelSerializer):
+    product = ProductSerializer()
+
+    class Meta:
+        model = models.Wishlist
+        fields = ['product', 'added_at']
+
+
+class WishlistCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Wishlist
+        fields = ['product']
 
 
 class CategoryProductSerializer(serializers.ModelSerializer):
