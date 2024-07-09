@@ -21,6 +21,7 @@ from .apirouter import NestedApiRouter
 from django.conf.urls.static import static
 
 router = NestedApiRouter(jwt_auth=True)
+router.register_app(r'auth', 'authentication.urls:router')
 router.register_app(r'ecom', 'ecom.api.urls:router')
 
 urlpatterns = [

@@ -34,14 +34,6 @@ CORS_URLS_REGEX = r".*/api/.*$"
 
 CORS_ALLOW_ALL_ORIGINS = True
 
-# CORS_ALLOWED_ORIGIN_REGEXES = [
-#     r"^http:\/\/localhost:*([0-9]+)?$",
-#     r"^https:\/\/localhost:*([0-9]+)?$",
-#     r"^http:\/\/127.0.0.1:*([0-9]+)?$",
-#     r"^https:\/\/127.0.0.1:*([0-9]+)?$",
-# ]
-
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -55,9 +47,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'phonenumber_field',
 
+    'authentication',
+    'root',
     'ecom',
-    'root'
 ]
 
 MIDDLEWARE = [
@@ -195,3 +189,8 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 SECURE_SSL_REDIRECT = not DEBUG
+
+AUTH_PROFILE_MODULE = 'authentication.User'
+AUTH_USER_MODEL = 'authentication.User'
+
+PHONENUMBER_DEFAULT_REGION = 'IN'

@@ -1,6 +1,8 @@
 Django
 Pillow
-djangorestframework
-djangorestframework-simplejwt
-django-cors-headers
+phonenumbers
 python-dotenv
+django-cors-headers
+djangorestframework
+django-phonenumber-field
+djangorestframework-simplejwt
