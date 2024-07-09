@@ -29,14 +29,14 @@ def calculate_discount(cart):
                 cart.coupon.discount if cart.sub_total - cart.coupon.discount > 0 else 1, 2)
         return 0
     except ValidationError:
-        pass
+        return 0
 
 
 def calculate_payment_fee(order_amount):
     pg_charge = 2 / 100  # 2% payment gateway charge
     fee_multiplier = 1 - pg_charge
     total_amount = order_amount / fee_multiplier
-    return round(total_amount, 2)
+    return round(total_amount - order_amount, 2)
 
 
 def calculate_shipping(cart):

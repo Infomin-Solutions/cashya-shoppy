@@ -87,7 +87,9 @@ class OrderStatusInline(admin.TabularInline):
     min_num = 1
 
     def get_max_num(self, request, obj, **kwargs):
-        return obj.statuses.count() + 1
+        if obj:
+            return obj.statuses.count() + 1
+        return 1
 
 
 @admin.register(models.Order)
