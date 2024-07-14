@@ -1,17 +1,9 @@
 import json
 from . import models
-from .api.views import CategoryProductViewSet
+from .api.views import CategoryProductViewSet, ProductViewSet
 from django.shortcuts import render
 
 # Create your views here.
-
-
-def base_view(request):
-    return render(
-        request,
-        'ecom/base.html',
-        context={}
-    )
 
 
 def category_products_view(request):
@@ -28,14 +20,6 @@ def category_products_view(request):
     )
 
 
-def product_card_view(request):
-    return render(
-        request,
-        'ecom/product-card.dhtml',
-        context={}
-    )
-
-
 def products_view(request):
     return render(
         request,
@@ -45,8 +29,16 @@ def products_view(request):
 
 
 def product_detail(request):
+    viewset = ProductViewSet()
+    viewset.request = request
+    request.query_params = {}
+    viewset.kwargs = {'pk': 1}
+    res = viewset.retrieve(request).data
+    data = json.loads(json.dumps(res))
     return render(
         request,
-        'ecom/product-detail.html',
-        context={}
+        'ecom/product-detail.dhtml',
+        context={
+            'data': data
+        }
     )

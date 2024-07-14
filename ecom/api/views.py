@@ -33,6 +33,7 @@ class ProductViewSet(ReadOnlyModelViewSet):
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ['name', 'description']
     ordering_fields = '__all__'
+    format_kwarg = None  # to access from other views
 
 
 class CategoryProductViewSet(ReadOnlyModelViewSet):
