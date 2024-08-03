@@ -1,0 +1,72 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+@import "bootstrap/scss/functions";
+@import "bootstrap/scss/variables";
+@import "bootstrap/scss/variables-dark";
+@import "theme";
+
+$theme-colors: (
+    "primary": $primary,
+    "secondary": $secondary,
+    "success": $success,
+    "danger": $danger,
+    "info": $info,
+    "gray": $gray-600
+);
+
+@import "bootstrap/scss/bootstrap.scss";
+
+* {
+    font-family: "Poppins", sans-serif;
+}
+
+.text-justify {
+    text-align: justify;
+}
+
+// X-Small devices (portrait phones, less than 576px)
+// No media query for `xs` since this is the default in Bootstrap
+
+// Small devices (landscape phones, 576px and up)
+@media (min-width: 576px) {
+    @each $index, $size in $font-sizes {
+        .fs-sm-#{$index} {
+            font-size: $size !important;
+        }
+    }
+}
+
+// Medium devices (tablets, 768px and up)
+@media (min-width: 768px) {
+    @each $index, $size in $font-sizes {
+        .fs-md-#{$index} {
+            font-size: $size !important;
+        }
+    }
+}
+
+// Large devices (desktops, 992px and up)
+@media (min-width: 992px) {
+    @each $index, $size in $font-sizes {
+        .fs-lg-#{$index} {
+            font-size: $size !important;
+        }
+    }
+}
+
+// X-Large devices (large desktops, 1200px and up)
+@media (min-width: 1200px) {
+    @each $index, $size in $font-sizes {
+        .fs-xl-#{$index} {
+            font-size: $size !important;
+        }
+    }
+}
+
+// XX-Large devices (larger desktops, 1400px and up)
+@media (min-width: 1400px) {
+    @each $index, $size in $font-sizes {
+        .fs-xxl-#{$index} {
+            font-size: $size !important;
+        }
+    }
+}
