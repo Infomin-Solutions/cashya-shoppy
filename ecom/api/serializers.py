@@ -131,8 +131,9 @@ class CartItemSerializer(serializers.ModelSerializer):
 
     def get_image(self, obj: models.CartItem):
         request = self.context.get('request')
-        if obj.product_variant.product.images.first():
-            image = obj.product_variant.product.images.first()
+        images = obj.product_variant.product.images.all()
+        if images.exists():
+            image = images[0]
             name = image.name
             image_url = request.build_absolute_uri(image.image.url)
             return {
@@ -244,7 +245,7 @@ class CouponSerializer(serializers.Serializer):
         cart = self.context.get('cart')
         if not cart:
             raise ValidationError('Cart is required for coupon validation')
-        coupon = models.Coupon.objects.filter(code=code).first()
-        if not coupon:
+        coupon = models.Coupon.objects.filter(code=code)
+        if not coupon.exists():
             raise ValidationError('Invalid coupon code')
-        return utils.validate_coupon(cart, coupon)
+        return utils.validate_coupon(cart, coupon[0])

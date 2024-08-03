@@ -71,7 +71,7 @@ class WhishlistViewSet(ViewSet, generics.ListAPIView):
             product = models.Product.objects.filter(id=product_id)
             if product.exists():
                 wishlist, created = models.Wishlist.objects.get_or_create(
-                    user=request.user, product=product.first())
+                    user=request.user, product=product[0])
                 if created:
                     return Response(serializers.WishlistSerializer(
                         wishlist,
