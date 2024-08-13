@@ -29,6 +29,7 @@ class ProductViewSet(ReadOnlyModelViewSet):
     queryset = models.Product.objects.all()
     serializer_class = serializers.ProductSerializer
     permission_classes = (AllowAny, )
+    authentication_classes = (JWTAuthentication, SessionAuthentication)
     pagination_class = PageNumberPagination
     filter_backends = (SearchFilter, OrderingFilter)
     search_fields = ['name', 'description']
