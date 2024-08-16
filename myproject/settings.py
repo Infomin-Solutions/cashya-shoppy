@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 import os
+import datetime
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -142,6 +143,13 @@ LOGGING = {
         }
     },
 }
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=2),  # 5 minutes
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=15),    # 1 day
+    "ROTATE_REFRESH_TOKENS": True,
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.0/ref/settings/#auth-password-validators
