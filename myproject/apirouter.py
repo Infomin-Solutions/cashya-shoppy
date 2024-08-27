@@ -6,6 +6,14 @@ from rest_framework.response import Response
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
 
+class JWTRoot(APIView):
+    def get(self, request: HttpRequest):
+        return Response({
+            'login': request.build_absolute_uri('token/'),
+            'refresh': request.build_absolute_uri('refresh/')
+        })
+
+
 class NestedApiRouter(APIView):
     name = 'Nested Api Root'
 
@@ -29,8 +37,7 @@ class NestedApiRouter(APIView):
         res = dict()
         for app in registered_apps:
             res[app] = request.build_absolute_uri(f"{app}/")
-        res['login'] = request.build_absolute_uri('token/')
-        res['refresh'] = request.build_absolute_uri('token/refresh/')
+        res['authentication'] = request.build_absolute_uri('authentication/')
         return Response(res)
 
     @property
@@ -43,11 +50,15 @@ class NestedApiRouter(APIView):
         if self.jwt_auth:
             res += [
                 path(
-                    'token/', TokenObtainPairView.as_view(),
+                    'authentication/', JWTRoot.as_view(),
+                    name='jwt-authentication'
+                ),
+                path(
+                    'authentication/token/', TokenObtainPairView.as_view(),
                     name='token_obtain_pair'
                 ),
                 path(
-                    'token/refresh/', TokenRefreshView.as_view(),
+                    'authentication/refresh/', TokenRefreshView.as_view(),
                     name='token_refresh'
                 ),
             ]
