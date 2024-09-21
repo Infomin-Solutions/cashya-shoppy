@@ -2,8 +2,7 @@ from rest_framework import serializers
 from . import models
 from django.utils import timezone
 from phonenumber_field.phonenumber import PhoneNumber
-import requests
-from django.conf import settings
+from .utils import recaptcha_verify
 
 
 class LogInSerializer(serializers.Serializer):
@@ -18,21 +17,10 @@ class LogInSerializer(serializers.Serializer):
         raise serializers.ValidationError("Invalid phone number")
 
     def validate_recaptcha_token(self, recaptcha_token):
-        try:
-            response = requests.post(
-                'https://www.google.com/recaptcha/api/siteverify',
-                {
-                    'secret': settings.RECAPTCHA_SECRET_KEY,
-                    'response': recaptcha_token
-                }
-            )
-            result = response.json()
-        except:
-            raise serializers.ValidationError("Recaptcha verification failed")
-        if not result.get('success', False):
-            raise serializers.ValidationError('Recaptcha verification failed')
-        self.recaptcha_verified = True
-        return recaptcha_token
+        if recaptcha_verify(recaptcha_token):
+            self.recaptcha_verified = True
+            return recaptcha_token
+        raise serializers.ValidationError("Recaptcha verification failed")
 
     def validate_otp(self, otp):
         if not getattr(self, 'recaptcha_verified', False):
@@ -60,18 +48,6 @@ class OTPSerializer(serializers.Serializer):
         raise serializers.ValidationError("Invalid phone number")
 
     def validate_recaptcha_token(self, recaptcha_token):
-        # Verify recaptcha token
-        try:
-            response = requests.post(
-                'https://www.google.com/recaptcha/api/siteverify',
-                {
-                    'secret': settings.RECAPTCHA_SECRET_KEY,
-                    'response': recaptcha_token
-                }
-            )
-            result = response.json()
-        except:
-            raise serializers.ValidationError("Recaptcha verification failed")
-        if not result.get('success', False):
-            raise serializers.ValidationError('Recaptcha verification failed')
-        return recaptcha_token
+        if recaptcha_verify(recaptcha_token):
+            return recaptcha_token
+        raise serializers.ValidationError("Recaptcha verification failed")
