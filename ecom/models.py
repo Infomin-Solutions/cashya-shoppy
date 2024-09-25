@@ -102,6 +102,9 @@ class Cart(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='cart')
+    address = models.OneToOneField(
+        'Address', on_delete=models.SET_NULL, blank=True, null=True, related_name='cart'
+    )
     product_variants = models.ManyToManyField(
         ProductVariant, through='CartItem', related_name='carts')
     coupon = models.ForeignKey(
@@ -214,15 +217,15 @@ class Address(models.Model):
     phone_number = PhoneNumberField(blank=False, null=False)
     alternate_phone_number = PhoneNumberField(blank=True, null=True)
     nickname = models.CharField(max_length=100, blank=True, null=True)
-    default = models.BooleanField(default=False)
+    selected = models.BooleanField(default=False)
 
     class Meta:
-        ordering = ['-default']
+        ordering = ['-selected']
 
     def __str__(self):
         return f"{self.user.username}'s address"
 
     def save(self, *args, **kwargs):
-        if self.default:
-            self.user.addresses.filter(default=True).update(default=False)
+        if self.selected:
+            self.user.addresses.filter(selected=True).update(selected=False)
         super().save(*args, **kwargs)

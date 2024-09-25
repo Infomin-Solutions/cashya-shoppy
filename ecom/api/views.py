@@ -231,5 +231,29 @@ class AddressViewSet(ModelViewSet):
     def get_queryset(self):
         return models.Address.objects.filter(user=self.request.user)
 
+    def set_default(self, serializer):
+        cart, _ = models.Cart.objects.get_or_create(user=self.request.user)
+        if serializer.instance.selected:
+            cart.address = serializer.instance
+            cart.save()
+        else:
+            addresses = models.Address.objects.filter(
+                user=self.request.user, selected=True)
+            if not addresses.exists():
+                cart.address = None
+                cart.save()
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+        self.set_default(serializer)
+
+    def perform_update(self, serializer):
+        super().perform_update(serializer)
+        self.set_default(serializer)
+
+    def perform_destroy(self, instance):
+        super().perform_destroy(instance)
+        cart, _ = models.Cart.objects.get_or_create(user=self.request.user)
+        if cart.address == instance:
+            cart.address = None
+            cart.save()

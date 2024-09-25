@@ -113,7 +113,7 @@ class AddressSerializer(serializers.ModelSerializer):
         model = models.Address
         fields = [
             'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark',
-            'phone_number', 'alternate_phone_number', 'nickname', 'default']
+            'phone_number', 'alternate_phone_number', 'nickname', 'selected']
 
 
 class CartItemSerializer(serializers.ModelSerializer):
@@ -175,13 +175,14 @@ class CartSerializer(serializers.ModelSerializer):
     shipping = serializers.SerializerMethodField(read_only=True)
     tax = serializers.SerializerMethodField(read_only=True)
     total = serializers.SerializerMethodField(read_only=True)
+    address = AddressSerializer(read_only=True)
 
     class Meta:
         model = models.Cart
         fields = [
-            'user', 'products', 'coupon', 'sub_total', 'discount', 'shipping', 'tax', 'total']
+            'user', 'address', 'products', 'coupon', 'sub_total', 'discount', 'shipping', 'tax', 'total']
         read_only_fields = [
-            'user', 'products', 'coupon', 'sub_total', 'discount', 'shipping', 'tax', 'total']
+            'user', 'address', 'products', 'coupon', 'sub_total', 'discount', 'shipping', 'tax', 'total']
 
     def get_coupon(self, obj):
         if obj.coupon:
@@ -238,6 +239,8 @@ class OrderSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if not models.CartItem.objects.filter(cart__user=self.context['user']).count():
             raise ValidationError('Your cart is empty')
+        if not models.Cart.objects.filter(user=self.context['user']).first().address:
+            raise ValidationError('Address is required for placing order')
         return super().validate(attrs)
 
     def create(self, validated_data):

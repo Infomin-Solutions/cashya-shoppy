@@ -116,4 +116,4 @@ class CouponAdmin(admin.ModelAdmin):
 
 @admin.register(models.Address)
 class AddressAdmin(admin.ModelAdmin):
-    list_display = ['user', 'nickname', 'default', 'name']
+    list_display = ['user', 'nickname', 'selected', 'name']
