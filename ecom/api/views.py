@@ -10,7 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet, generics
+from rest_framework.viewsets import ReadOnlyModelViewSet, ViewSet, generics, ModelViewSet
 
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
