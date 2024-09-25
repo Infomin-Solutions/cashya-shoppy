@@ -112,3 +112,8 @@ class CouponAdmin(admin.ModelAdmin):
     list_display = [
         'code', 'discount', 'coupon_type', 'valid_from', 'valid_to', 'active', 'quantity']
     search_fields = ['code']
+
+
+@admin.register(models.Address)
+class AddressAdmin(admin.ModelAdmin):
+    list_display = ['user', 'nickname', 'default', 'name']

@@ -108,6 +108,14 @@ class CategoryProductSerializer(serializers.ModelSerializer):
         return obj.products.count()
 
 
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = models.Address
+        fields = [
+            'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark',
+            'phone_number', 'alternate_phone_number', 'nickname', 'default']
+
+
 class CartItemSerializer(serializers.ModelSerializer):
     product = serializers.SerializerMethodField(read_only=True)
     image = serializers.SerializerMethodField(read_only=True)

@@ -220,3 +220,16 @@ class CouponViewSet(ViewSet):
         cart.coupon = None
         cart.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class AddressViewSet(ModelViewSet):
+    serializer_class = serializers.AddressSerializer
+    authentication_classes = (JWTAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated, )
+    pagination_class = None
+
+    def get_queryset(self):
+        return models.Address.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
