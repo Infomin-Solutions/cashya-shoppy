@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F, Sum
 from authentication.models import User
 from phonenumber_field.modelfields import PhoneNumberField
 
@@ -112,9 +113,9 @@ class Cart(models.Model):
 
     @property
     def sub_total(self):
-        total = 0
-        for item in self.product_variants.through.objects.filter(cart=self):
-            total += item.product_variant.price * item.quantity
+        total = self.product_variants.through.objects.filter(cart=self).aggregate(
+            total=Sum(F('product_variant__price') * F('quantity'))
+        )['total'] or 0
         return round(total, 2)
 
     def __str__(self):
@@ -157,6 +158,14 @@ class Order(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
         User, on_delete=models.CASCADE, related_name='orders')
+    name = models.CharField(max_length=100)
+    address = models.TextField(max_length=200)
+    city = models.CharField(max_length=100)
+    state = models.CharField(max_length=100)
+    pincode = models.CharField(max_length=6)
+    landmark = models.CharField(max_length=100, blank=True, null=True)
+    phone_number = PhoneNumberField(blank=False, null=False)
+    alternate_phone_number = PhoneNumberField(blank=True, null=True)
     total = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, blank=True, null=True)

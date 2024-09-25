@@ -232,9 +232,12 @@ class OrderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = models.Order
-        fields = ['id', 'total', 'created_at', 'status', 'items', 'statuses']
+        fields = [
+            'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark',
+            'phone_number', 'alternate_phone_number', 'total', 'created_at', 'status', 'items', 'statuses']
         read_only_fields = [
-            'id', 'total', 'created_at', 'status', 'items', 'statuses']
+            'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark',
+            'phone_number', 'alternate_phone_number', 'total', 'created_at', 'status', 'items', 'statuses']
 
     def validate(self, attrs):
         if not models.CartItem.objects.filter(cart__user=self.context['user']).count():

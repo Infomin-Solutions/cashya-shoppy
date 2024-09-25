@@ -165,6 +165,14 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
             data=request.data, context={'user': request.user})
         if serializer.is_valid():
             cart, _ = models.Cart.objects.get_or_create(user=request.user)
+            serializer.instance.name = cart.address.name
+            serializer.instance.address = cart.address.address
+            serializer.instance.city = cart.address.city
+            serializer.instance.state = cart.address.state
+            serializer.instance.pincode = cart.address.pincode
+            serializer.instance.landmark = cart.address.landmark
+            serializer.instance.phone_number = cart.address.phone_number
+            serializer.instance.alternate_phone_number = cart.address.alternate_phone_number
             cart_items = models.CartItem.objects.filter(cart=cart)
             serializer.save()
             total = 0
