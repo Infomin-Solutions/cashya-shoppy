@@ -227,6 +227,8 @@ class Address(models.Model):
     alternate_phone_number = PhoneNumberField(blank=True, null=True)
     nickname = models.CharField(max_length=100, blank=True, null=True)
     selected = models.BooleanField(default=False)
+    company_name = models.CharField(max_length=100, blank=True, null=True)
+    gstin = models.CharField(max_length=15, blank=True, null=True)
 
     class Meta:
         ordering = ['-selected']

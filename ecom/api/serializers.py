@@ -3,6 +3,7 @@ from ecom import models
 from django.db.models import Min, Max
 from rest_framework import serializers
 from rest_framework.serializers import ValidationError
+import re
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -113,7 +114,23 @@ class AddressSerializer(serializers.ModelSerializer):
         model = models.Address
         fields = [
             'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark',
-            'phone_number', 'alternate_phone_number', 'nickname', 'selected']
+            'phone_number', 'alternate_phone_number', 'nickname', 'selected', 'company_name', 'gstin']
+
+    def validate_company_name(self, value):
+        if self.initial_data.get('gstin') and not value:
+            raise ValidationError('Company name is required')
+        return value
+
+    def validate_gstin(self, value):
+        if self.initial_data.get('company_name', None) and not value:
+            raise ValidationError('GSTIN is required')
+        if value:
+            value = value.upper()
+            regex = re.compile(
+                r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$')
+            if not regex.match(value):
+                raise ValidationError('Invalid GSTIN')
+        return value
 
 
 class CartItemSerializer(serializers.ModelSerializer):
