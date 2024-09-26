@@ -110,6 +110,8 @@ class Cart(models.Model):
         ProductVariant, through='CartItem', related_name='carts')
     coupon = models.ForeignKey(
         Coupon, on_delete=models.SET_NULL, blank=True, null=True)
+    payment_mode = models.CharField(
+        max_length=20, blank=True, null=True)
 
     @property
     def sub_total(self):

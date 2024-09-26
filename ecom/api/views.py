@@ -1,3 +1,4 @@
+from ecom import utils
 from ecom import models
 from . import serializers
 
@@ -161,6 +162,7 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
         return models.Order.objects.filter(user=self.request.user)
 
     def create(self, request):
+        'Create Order and return payment config'
         serializer = serializers.OrderSerializer(
             data=request.data, context={'user': request.user})
         if serializer.is_valid():
@@ -195,6 +197,10 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
                 order=serializer.instance, status=0)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, pk):
+        'Return the payment config for the order'
+        pass
 
 
 class CouponViewSet(ViewSet):
@@ -265,3 +271,39 @@ class AddressViewSet(ModelViewSet):
         if cart.address == instance:
             cart.address = None
             cart.save()
+
+
+class PaymentViewSet(ViewSet):
+    authentication_classes = (JWTAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated, )
+    pagination_class = None
+    serializer_class = serializers.PaymentSerializer
+
+    def list(self, request):
+        'This method should return the list of payment methods available with meta data'
+        cart = models.Cart.objects.get(user=request.user)
+        methods = []
+        for mode in utils.PAYMENT_MODES:
+            methods.append({
+                'name': mode[1],
+                'value': mode[0],
+                'selected': cart.payment_mode == mode[0]
+            })
+        return Response({
+            'methods': methods
+        })
+
+    def retrieve(self, request, pk):
+        'Retrive the payment details for the order'
+        pass
+
+    def create(self, request):
+        'Create a payment for the order'
+        cart = models.Cart.objects.get(user=request.user)
+        serializer = serializers.PaymentSerializer(
+            data=request.data, context={'request': request})
+        if serializer.is_valid():
+            cart.payment_mode = serializer.validated_data['payment_method']
+            cart.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

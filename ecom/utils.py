@@ -49,3 +49,10 @@ def calculate_tax(cart):
 
 def calculate_total(cart):
     return round(cart.sub_total - calculate_discount(cart) + calculate_shipping(cart) + calculate_tax(cart), 2)
+
+
+PAYMENT_MODES = [
+    ('cod', 'Cash on delivery'),
+    ('razorpay', 'Online payment (Razorpay)'),
+    ('phonepe', 'Online payment (PhonePe)'),
+]

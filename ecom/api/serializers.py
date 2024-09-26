@@ -197,9 +197,9 @@ class CartSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Cart
         fields = [
-            'user', 'address', 'products', 'coupon', 'sub_total', 'discount', 'shipping', 'tax', 'total']
+            'user', 'address', 'products', 'coupon', 'payment_mode', 'sub_total', 'discount', 'shipping', 'tax', 'total']
         read_only_fields = [
-            'user', 'address', 'products', 'coupon', 'sub_total', 'discount', 'shipping', 'tax', 'total']
+            'user', 'address', 'products', 'coupon', 'payment_mode', 'sub_total', 'discount', 'shipping', 'tax', 'total']
 
     def get_coupon(self, obj):
         if obj.coupon:
@@ -280,3 +280,17 @@ class CouponSerializer(serializers.Serializer):
         if not coupon.exists():
             raise ValidationError('Invalid coupon code')
         return utils.validate_coupon(cart, coupon[0])
+
+
+class PaymentSerializer(serializers.Serializer):
+    payment_method = serializers.ChoiceField(choices=[], required=True)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        user = self.context.get('request').user
+        if user and user.is_authenticated:
+            self.fields['payment_method'].choices = self.get_user_specific_choices(
+                user)
+
+    def get_user_specific_choices(self, user):
+        return [(None, '-')] + utils.PAYMENT_MODES
