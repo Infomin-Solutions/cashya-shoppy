@@ -241,4 +241,7 @@ class Address(models.Model):
     def save(self, *args, **kwargs):
         if self.selected:
             self.user.addresses.filter(selected=True).update(selected=False)
+        if self.nickname is None:
+            count = self.user.addresses.count()
+            self.nickname = f"Address {count + 1}"
         super().save(*args, **kwargs)
