@@ -27,15 +27,15 @@ jobs:
         run: |
           ftp -inv ${{ vars.SSH_HOST }} << EOF
           user ${{ secrets.SSH_USER }} ${{ secrets.SSH_USER_PASS }}
-          cd cashya_in
+          cd cashya_infomin_solutions
           put files.zip
           quit
           EOF
 
       - name: Unzip Files
         run: |
-          sshpass -p '${{ secrets.SSH_ROOT_PASS }}' ssh -o StrictHostKeyChecking=no root@${{ vars.SSH_HOST }} 'cd /home/infominsolutions/cashya_in && unzip -o files.zip && sudo rm files.zip'
+          sshpass -p '${{ secrets.SSH_ROOT_PASS }}' ssh -o StrictHostKeyChecking=no root@${{ vars.SSH_HOST }} 'cd /home/infominsolutions/cashya_infomin_solutions && unzip -o files.zip && sudo rm files.zip'
 
       - name: Install & Restart Apache
         run: |
-          sshpass -p '${{ secrets.SSH_ROOT_PASS }}' ssh -o StrictHostKeyChecking=no root@${{ vars.SSH_HOST }} 'cd /home/infominsolutions/cashya_in && venv/bin/pip install -r requirements.txt && venv/bin/python manage.py collectstatic --no-input && service httpd restart'
+          sshpass -p '${{ secrets.SSH_ROOT_PASS }}' ssh -o StrictHostKeyChecking=no root@${{ vars.SSH_HOST }} 'cd /home/infominsolutions/cashya_infomin_solutions && venv/bin/pip install -r requirements.txt && venv/bin/python manage.py collectstatic --no-input && service httpd restart'
