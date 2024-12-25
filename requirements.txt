@@ -8,6 +8,7 @@ django-phonenumber-field
 djangorestframework-simplejwt
 requests
 razorpay
+paytmchecksum
 paytm-pg
 --index-url https://phonepe.mycloudrepo.io/public/repositories/phonepe-pg-sdk-python
 --extra-index-url https://pypi.org/simple
