@@ -140,6 +140,9 @@ class Wishlist(models.Model):
         Product, on_delete=models.CASCADE, related_name='whishlists')
     added_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        unique_together = ('user', 'product')
+
     def __str__(self):
         return f"{self.user.username}'s whishlist"
 
@@ -159,7 +162,7 @@ STATUS_CHOICES = [
 class Order(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.ForeignKey(
-        User, on_delete=models.CASCADE, related_name='orders')
+        User, on_delete=models.DO_NOTHING, related_name='orders')
     name = models.CharField(max_length=100)
     address = models.TextField(max_length=200)
     city = models.CharField(max_length=100)
@@ -171,6 +174,8 @@ class Order(models.Model):
     total = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     status = models.CharField(max_length=100, blank=True, null=True)
+    payment_mode = models.CharField(
+        max_length=20, blank=True, null=True)
 
     class Meta:
         ordering = ['-created_at']
@@ -245,3 +250,17 @@ class Address(models.Model):
             count = self.user.addresses.count()
             self.nickname = f"Address {count + 1}"
         super().save(*args, **kwargs)
+
+
+class Payment(models.Model):
+    id = models.AutoField(primary_key=True)
+    order = models.ForeignKey(
+        Order, on_delete=models.DO_NOTHING, related_name='payment')
+    mode = models.CharField(max_length=20)
+    status = models.CharField(max_length=20)
+    transaction_id = models.CharField(max_length=100)
+    amount = models.FloatField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Payment for Order #{self.order.id}"

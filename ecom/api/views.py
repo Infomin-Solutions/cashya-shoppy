@@ -166,15 +166,18 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
         serializer = serializers.OrderSerializer(
             data=request.data, context={'user': request.user})
         if serializer.is_valid():
+            serializer.save()
             cart, _ = models.Cart.objects.get_or_create(user=request.user)
-            serializer.instance.name = cart.address.name
-            serializer.instance.address = cart.address.address
-            serializer.instance.city = cart.address.city
-            serializer.instance.state = cart.address.state
-            serializer.instance.pincode = cart.address.pincode
-            serializer.instance.landmark = cart.address.landmark
-            serializer.instance.phone_number = cart.address.phone_number
-            serializer.instance.alternate_phone_number = cart.address.alternate_phone_number
+            address: models.Address = cart.address
+            serializer.instance.name = address.name
+            serializer.instance.address = address.address
+            serializer.instance.city = address.city
+            serializer.instance.state = address.state
+            serializer.instance.pincode = address.pincode
+            serializer.instance.landmark = address.landmark
+            serializer.instance.phone_number = address.phone_number
+            serializer.instance.alternate_phone_number = address.alternate_phone_number
+            serializer.instance.payment_mode = cart.payment_mode
             cart_items = models.CartItem.objects.filter(cart=cart)
             serializer.save()
             total = 0
@@ -200,7 +203,61 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
 
     def update(self, request, pk):
         'Return the payment config for the order'
-        pass
+        order = get_object_or_404(models.Order, id=pk, user=request.user)
+        if order.payment_mode == 'cod':
+            return Response({'detail': 'Order already placed'}, status=status.HTTP_400_BAD_REQUEST)
+        status_pending = models.STATUS_CHOICES.index('Pending')
+        if models.STATUS_CHOICES.index(order.status) > status_pending:
+            return Response({f"detail': 'Order has already been {order.status}"}, status=status.HTTP_400_BAD_REQUEST)
+        if order.payment_mode == 'phonepe':
+            data = utils.get_phonepe_config(
+                order.id, order.total, order.user.pk)
+            models.Payment.objects.create(
+                order=order,
+                mode='phonepe',
+                status=data['status'],
+                transaction_id=data['order_id'],
+                amount=order.total
+            )
+            return Response({
+                'txn_token': data['config']['txn_token'],
+                'callback_url': data['config']['callback_url'],
+                'gateway': 'phonepe'
+            }, status=status.HTTP_200_OK)
+        if order.payment_mode == 'razorpay':
+            data = utils.get_razorpay_config(
+                str(order.id), order.total, order.name, order.phone_number.as_e164)
+            models.Payment.objects.create(
+                order=order,
+                mode='razorpay',
+                status=data['status'],
+                transaction_id=data['order_id'],
+                amount=order.total
+            )
+            return Response({
+                'config': data['config'],
+                'gateway': 'razorpay'
+            }, status=status.HTTP_200_OK)
+        if order.payment_mode == 'paytm':
+            data = utils.get_paytm_config(
+                order.id, order.total, order.user.pk, order.user.first_name, order.phone_number.as_e164)
+            models.Payment.objects.create(
+                order=order,
+                mode='paytm',
+                status=data['status'],
+                transaction_id=data['order_id'],
+                amount=order.total
+            )
+            return Response({
+                'config': {
+                    'order_id': str(order.id),
+                    'txn_token': data['order_id'],
+                    'amount': str(order.total),
+                },
+                'script': data['config'],
+                'gateway': 'paytm'
+            }, status=status.HTTP_200_OK)
+        return Response({'detail': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class CouponViewSet(ViewSet):
@@ -223,8 +280,11 @@ class CouponViewSet(ViewSet):
         serializer = serializers.CouponSerializer(
             data=request.data, context={'cart': cart})
         if serializer.is_valid():
-            cart.coupon = models.Coupon.objects.get(
+            coupon = models.Coupon.objects.filter(
                 code=serializer.validated_data['code'])
+            if not coupon.exists():
+                return Response({'detail': 'Coupon not found'}, status=status.HTTP_404_NOT_FOUND)
+            cart.coupon = coupon.first()
             cart.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -265,13 +325,6 @@ class AddressViewSet(ModelViewSet):
         super().perform_update(serializer)
         self.set_default(serializer)
 
-    def perform_destroy(self, instance):
-        super().perform_destroy(instance)
-        cart, _ = models.Cart.objects.get_or_create(user=self.request.user)
-        if cart.address == instance:
-            cart.address = None
-            cart.save()
-
 
 class PaymentViewSet(ViewSet):
     authentication_classes = (JWTAuthentication, SessionAuthentication)
@@ -298,7 +351,7 @@ class PaymentViewSet(ViewSet):
         pass
 
     def create(self, request):
-        'Create a payment for the order'
+        'Update a payment for the order'
         cart = models.Cart.objects.get(user=request.user)
         serializer = serializers.PaymentSerializer(
             data=request.data, context={'request': request})

@@ -250,10 +250,10 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Order
         fields = [
-            'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark',
+            'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark', 'payment_mode',
             'phone_number', 'alternate_phone_number', 'total', 'created_at', 'status', 'items', 'statuses']
         read_only_fields = [
-            'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark',
+            'id', 'name', 'address', 'city', 'state', 'pincode', 'landmark', 'payment_mode',
             'phone_number', 'alternate_phone_number', 'total', 'created_at', 'status', 'items', 'statuses']
 
     def validate(self, attrs):
@@ -276,10 +276,10 @@ class CouponSerializer(serializers.Serializer):
         cart = self.context.get('cart')
         if not cart:
             raise ValidationError('Cart is required for coupon validation')
-        coupon = models.Coupon.objects.filter(code=code)
-        if not coupon.exists():
+        coupon = models.Coupon.objects.filter(code=code).first()
+        if not coupon:
             raise ValidationError('Invalid coupon code')
-        return utils.validate_coupon(cart, coupon[0])
+        return utils.validate_coupon(cart, coupon)
 
 
 class PaymentSerializer(serializers.Serializer):
