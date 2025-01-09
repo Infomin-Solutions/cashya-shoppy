@@ -82,7 +82,7 @@ PAYMENT_MODES = [
     ('phonepe', 'Online payment (PhonePe)'),
     ('paytm', 'Online payment (Paytm)'),
 ]
-CALLBACK_SITE = 'https://proxy.infomin.solutions'
+CALLBACK_SITE = 'https://cashya.infomin.solutions'
 
 
 class PaymentGateway:
