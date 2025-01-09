@@ -78,11 +78,11 @@ def timestamp(): return str(int(datetime.now().timestamp()))
 STAGING = True
 PAYMENT_MODES = [
     ('cod', 'Cash on delivery'),
-    ('razorpay', 'Online payment (Razorpay)'),
     ('phonepe', 'Online payment (PhonePe)'),
+    ('razorpay', 'Online payment (Razorpay)'),
     ('paytm', 'Online payment (Paytm)'),
 ]
-CALLBACK_SITE = 'https://cashya.infomin.solutions'
+CALLBACK_SITE = 'https://proxy.infomin.solutions'
 
 
 class PaymentGateway:
@@ -183,7 +183,7 @@ class PaymentGateway:
             order = self.__razorpay_client.order.create(data={
                 "amount": int(float(self.amount) * 100),
                 "currency": "INR",
-                "receipt": self.order_id,
+                "receipt": str(self.order_id),
             })
             return {
                 'order_id': order.get('id'),
