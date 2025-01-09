@@ -1,8 +1,10 @@
 from ecom import utils
 from ecom import models
 from . import serializers
+from ecom.utils import PaymentGateway
 
 from django.shortcuts import get_object_or_404
+from django.http import HttpRequest
 
 from rest_framework import status
 from rest_framework.response import Response
@@ -210,51 +212,60 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
         if models.STATUS_CHOICES.index(order.status) > status_pending:
             return Response({f"detail': 'Order has already been {order.status}"}, status=status.HTTP_400_BAD_REQUEST)
         if order.payment_mode == 'phonepe':
-            data = utils.get_phonepe_config(
-                order.id, order.total, order.user.pk)
+            phonepe = PaymentGateway.PhonePe(
+                order_id=order.id, amount=order.total, user_id=order.user.pk)
+            transaction = phonepe.initiate_transaction()
             models.Payment.objects.create(
                 order=order,
                 mode='phonepe',
-                status=data['status'],
-                transaction_id=data['order_id'],
+                status=transaction['status'],
+                transaction_id=transaction['order_id'],
                 amount=order.total
             )
             return Response({
-                'txn_token': data['config']['txn_token'],
-                'callback_url': data['config']['callback_url'],
+                'txn_token': transaction['txn_token'],
+                'callback_url': transaction['callback_url'],
                 'gateway': 'phonepe'
             }, status=status.HTTP_200_OK)
         if order.payment_mode == 'razorpay':
-            data = utils.get_razorpay_config(
-                str(order.id), order.total, order.name, order.phone_number.as_e164)
-            models.Payment.objects.create(
-                order=order,
-                mode='razorpay',
-                status=data['status'],
-                transaction_id=data['order_id'],
-                amount=order.total
-            )
+            razorpay = PaymentGateway.RazorPay(
+                order_id=order.id, amount=order.total, name=order.name, phone=order.phone_number.as_e164)
+            payments = models.Payment.objects.filter(order=order)
+            if payments.exists():
+                payment = payments.first()
+            else:
+                transaction = razorpay.initiate_transaction()
+                payment = models.Payment.objects.create(
+                    order=order,
+                    mode='razorpay',
+                    status=transaction['status'],
+                    transaction_id=transaction['order_id'],
+                    amount=order.total
+                )
+            razorpay.order_id = payment.transaction_id
             return Response({
-                'config': data['config'],
+                'config': razorpay.get_config(),
                 'gateway': 'razorpay'
             }, status=status.HTTP_200_OK)
         if order.payment_mode == 'paytm':
-            data = utils.get_paytm_config(
-                order.id, order.total, order.user.pk, order.user.first_name, order.phone_number.as_e164)
+            paytm = PaymentGateway.PayTm(
+                order_id=order.id, amount=order.total, user_id=order.user.pk, name=order.user.first_name, phone=order.phone_number.as_e164
+            )
+            transaction = paytm.initiate_transaction()
             models.Payment.objects.create(
                 order=order,
                 mode='paytm',
-                status=data['status'],
-                transaction_id=data['order_id'],
+                status=transaction['status'],
+                transaction_id=transaction['order_id'],
                 amount=order.total
             )
             return Response({
                 'config': {
                     'order_id': str(order.id),
-                    'txn_token': data['order_id'],
+                    'txn_token': transaction['txn_token'],
                     'amount': str(order.total),
                 },
-                'script': data['config'],
+                'script': transaction['config'],
                 'gateway': 'paytm'
             }, status=status.HTTP_200_OK)
         return Response({'detail': 'Order not found'}, status=status.HTTP_404_NOT_FOUND)
