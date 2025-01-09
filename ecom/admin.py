@@ -117,3 +117,8 @@ class CouponAdmin(admin.ModelAdmin):
 @admin.register(models.Address)
 class AddressAdmin(admin.ModelAdmin):
     list_display = ['user', 'nickname', 'selected', 'name']
+
+
+@admin.register(models.Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ['transaction_id', 'mode', 'status', 'paid', 'order']
