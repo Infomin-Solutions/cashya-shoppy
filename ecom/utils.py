@@ -82,6 +82,7 @@ PAYMENT_MODES = [
     ('phonepe', 'Online payment (PhonePe)'),
     ('paytm', 'Online payment (Paytm)'),
 ]
+CALLBACK_SITE = 'https://proxy.infomin.solutions'
 
 
 class PaymentGateway:
@@ -112,7 +113,7 @@ class PaymentGateway:
             order_id = f"{self.order_id}X{timestamp()}"
             amount = int(float(self.amount) * 100)
             user_id = f"CUST{self.user_id}"
-            callback_url = f"https://proxy.infomin.solutions/ecom/callback?pg=phonepe&transaction_id={order_id}"
+            callback_url = f"{CALLBACK_SITE}/ecom/callback?pg=phonepe&transaction_id={order_id}"
             pay_page_request = PgPayRequest.pay_page_pay_request_builder(
                 merchant_order_id=order_id,
                 merchant_transaction_id=order_id,
@@ -167,7 +168,7 @@ class PaymentGateway:
                 "description": "Test Transaction",
                 "image": "https://www.askjhansi.com/logo.png",
                 "order_id": self.order_id,
-                "callback_url": f"https://proxy.infomin.solutions/ecom/callback?pg=razorpay&transaction_id={self.order_id}",
+                "callback_url": f"{CALLBACK_SITE}/ecom/callback?pg=razorpay&transaction_id={self.order_id}",
                 "prefill": {
                     "name": self.name,
                     "contact": self.phone
@@ -227,7 +228,7 @@ class PaymentGateway:
                 "mid": self._MID,
                 "websiteName": self._WEBSITE,
                 "orderId": order_id,
-                "callbackUrl": f"https://proxy.infomin.solutions/ecom/callback?pg=paytm&transaction_id={order_id}",
+                "callbackUrl": f"{CALLBACK_SITE}/ecom/callback?pg=paytm&transaction_id={order_id}",
                 "txnAmount": {
                     "value": str(round(float(self.amount), 2)),
                     "currency": "INR",
