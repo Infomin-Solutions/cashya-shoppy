@@ -7,6 +7,7 @@ djangorestframework
 django-phonenumber-field
 djangorestframework-simplejwt
 requests
+gunicorn
 razorpay
 paytmchecksum
 paytm-pg
