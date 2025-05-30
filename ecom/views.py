@@ -1,10 +1,12 @@
 from .utils import PaymentGateway
 from django.http import HttpRequest, HttpResponseRedirect, Http404, HttpResponse
 from . import models
+from django.views.decorators.csrf import csrf_exempt
 
 # Create your views here.
 
 
+@csrf_exempt
 def payment_callback(request: HttpRequest):
     SITE = 'http://127.0.0.1:3000'
     pg = request.GET.get('pg')
