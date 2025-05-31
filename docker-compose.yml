@@ -3,13 +3,9 @@ version: "3.8"
 services:
   python_server:
     build: .
+    restart: unless-stopped
     command: >
-      sh -c "
-      python manage.py migrate &&
-      python manage.py createcachetable &&
-      python manage.py collectstatic --noinput &&
-      gunicorn myproject.wsgi:application --bind 0.0.0.0:8000
-      "
+      sh -c " python manage.py migrate && python manage.py createcachetable && python manage.py collectstatic --noinput && gunicorn myproject.wsgi:application --bind 0.0.0.0:8000 "
     volumes:
       - .:/myproject
     ports:
