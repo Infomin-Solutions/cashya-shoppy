@@ -29,7 +29,18 @@ SECRET_KEY = 'django-insecure-%azt(hs#@359p$02vbjyeol^k+g=o*sc&ej%fmi$y4fu1quo9)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [
+    'localhost',
+    'cashya.infomin.solutions',
+    'proxy.infomin.solutions',
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:5025',
+    'https://cashya.infomin.solutions',
+    'https://proxy.infomin.solutions',
+    'http://proxy.infomin.solutions',
+]
 
 CORS_URLS_REGEX = r".*/api/.*$"
 
