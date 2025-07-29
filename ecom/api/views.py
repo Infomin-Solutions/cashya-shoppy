@@ -261,7 +261,7 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
             )
             return Response({
                 'config': {
-                    'order_id': str(order.id),
+                    'order_id': transaction['order_id'],
                     'txn_token': transaction['txn_token'],
                     'amount': str(order.total),
                 },
