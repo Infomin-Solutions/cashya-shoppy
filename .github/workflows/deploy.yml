@@ -1,0 +1,39 @@
+name: Deploy Backend to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+    - name: Change to project directory
+      run: cd /home/ubuntu/cashya-shoppy
+
+    - name: Pull latest changes
+      run: |
+        cd /home/ubuntu/cashya-shoppy
+        git pull origin main
+
+    - name: Stop and remove existing containers
+      run: |
+        cd /home/ubuntu/cashya-shoppy
+        docker compose down --rmi all --volumes --remove-orphans
+
+    - name: Clean up Docker system
+      run: |
+        cd /home/ubuntu/cashya-shoppy
+        docker system prune -af --volumes
+
+    - name: Build and start containers
+      run: |
+        cd /home/ubuntu/cashya-shoppy
+        docker compose up --build -d
+
+    - name: Check container status
+      run: |
+        cd /home/ubuntu/cashya-shoppy
+        docker compose ps
