@@ -31,12 +31,14 @@ DEBUG = os.getenv('DEBUG') == 'True'
 
 ALLOWED_HOSTS = [
     'localhost',
+    '127.0.0.1',
     'cashya.infomin.solutions',
     'proxy.infomin.solutions',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5025',
+    'http://127.0.0.1:5025',
     'https://cashya.infomin.solutions',
     'https://proxy.infomin.solutions',
     'http://proxy.infomin.solutions',
