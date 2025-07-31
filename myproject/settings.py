@@ -204,3 +204,8 @@ AUTH_USER_MODEL = 'authentication.User'
 PHONENUMBER_DEFAULT_REGION = 'IN'
 
 RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
+
+# TOTP Settings
+TOTP_SECRET = os.getenv('TOTP_SECRET', 'abc')  # Plain string secret
+TOTP_ISSUER_NAME = 'Cashya Shoppy'
+TOTP_ACCOUNT_NAME = 'Cashya TOTP'
