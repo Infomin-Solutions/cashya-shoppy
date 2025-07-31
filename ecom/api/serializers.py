@@ -260,14 +260,18 @@ class CartSerializer(serializers.ModelSerializer):
         many=True, read_only=True, source='cartitem_set')
     coupon = serializers.SerializerMethodField(read_only=True)
     calculate = serializers.SerializerMethodField(read_only=True)
+    sub_total = serializers.SerializerMethodField(read_only=True)
+    total = serializers.SerializerMethodField(read_only=True)
     address = AddressSerializer(read_only=True)
 
     class Meta:
         model = models.Cart
         fields = [
-            'user', 'address', 'products', 'coupon', 'payment_mode', 'calculate']
+            'user', 'address', 'products', 'coupon', 'payment_mode', 'calculate', 'sub_total', 'total'
+        ]
         read_only_fields = [
-            'user', 'address', 'products', 'coupon', 'payment_mode', 'calculate']
+            'user', 'address', 'products', 'coupon', 'payment_mode', 'calculate', 'sub_total', 'total'
+        ]
 
     def get_coupon(self, obj):
         if obj.coupon:
@@ -277,6 +281,12 @@ class CartSerializer(serializers.ModelSerializer):
     def get_calculate(self, obj):
         calculate_serializer = CalculateSerializer()
         return calculate_serializer.to_representation(obj)['calculate']
+
+    def get_sub_total(self, obj):
+        return obj.sub_total
+
+    def get_total(self, obj):
+        return utils.calculate_total(obj)
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
