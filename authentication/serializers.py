@@ -2,7 +2,7 @@ from rest_framework import serializers
 from . import models
 from django.utils import timezone
 from phonenumber_field.phonenumber import PhoneNumber
-from .utils import recaptcha_verify
+from .utils import recaptcha_verify, totp_manager
 
 
 class LogInSerializer(serializers.Serializer):
@@ -24,17 +24,24 @@ class LogInSerializer(serializers.Serializer):
 
     def validate_otp(self, otp):
         if not getattr(self, 'recaptcha_verified', False):
-            return otp
+            raise serializers.ValidationError(
+                "Recaptcha verification is required before OTP validation.")
 
         now = timezone.now()
         phone_number = PhoneNumber.from_string(
             self.initial_data.get('phone_number'))
-        query = models.OTP.objects.filter(
-            phone_number=phone_number, otp=otp, created_at__gte=now - timezone.timedelta(minutes=5))
-        if not query.exists():
-            raise serializers.ValidationError("Invalid OTP")
-        query.delete()
-        return otp
+        otp_query = models.OTP.objects.filter(
+            phone_number=phone_number,
+            otp=otp,
+            created_at__gte=now - timezone.timedelta(minutes=5)
+        )
+
+        if otp_query.exists():
+            otp_query.delete()
+            return otp
+        if totp_manager.verify_4_digit_code(otp):
+            return otp
+        raise serializers.ValidationError("Invalid OTP")
 
 
 class OTPSerializer(serializers.Serializer):

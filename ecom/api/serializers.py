@@ -183,43 +183,100 @@ class CartItemSerializer(serializers.ModelSerializer):
         return super().update(instance, validated_data)
 
 
+class CalculateItem:
+    """A simple class to hold calculate item data"""
+
+    def __init__(self, name, value, info=None):
+        self.name = name
+        self.value = value
+        self.info = info
+
+
+class CalculateItemSerializer(serializers.Serializer):
+    name = serializers.CharField()
+    value = serializers.DecimalField(max_digits=10, decimal_places=2)
+    info = serializers.CharField(required=False, allow_null=True, default=None)
+
+
+class CalculateSerializer(serializers.Serializer):
+    calculate = CalculateItemSerializer(many=True, read_only=True)
+
+    def to_representation(self, instance):
+        calculate_items = []
+
+        # Sub total
+        sub_total = instance.sub_total
+        calculate_items.append(CalculateItem(
+            name='sub total',
+            value=sub_total,
+            info='This is the total of products without any discounts applied'
+        ))
+
+        # Discount
+        discount = utils.calculate_discount(instance)
+        if discount > 0:
+            discount_info = 'Discount applied'
+            if instance.coupon:
+                discount_info = f'Discount applied with coupon: {instance.coupon.code}'
+            calculate_items.append(CalculateItem(
+                name='discount',
+                value=discount,
+                info=discount_info
+            ))
+
+        # Shipping
+        shipping = utils.calculate_shipping(instance)
+        shipping_info = 'Free shipping' if shipping == 0 else 'Shipping charges applied'
+        calculate_items.append(CalculateItem(
+            name='shipping',
+            value=shipping,
+            info=shipping_info
+        ))
+
+        # Tax
+        tax = utils.calculate_tax(instance)
+        calculate_items.append(CalculateItem(
+            name='tax',
+            value=tax,
+            info='Applied at 18%'
+        ))
+
+        # Total
+        total = utils.calculate_total(instance)
+        calculate_items.append(CalculateItem(
+            name='total',
+            value=total,
+        ))
+
+        # Serialize the CalculateItem objects using CalculateItemSerializer
+        serializer = CalculateItemSerializer(calculate_items, many=True)
+        return {
+            'calculate': serializer.data
+        }
+
+
 class CartSerializer(serializers.ModelSerializer):
     products = CartItemSerializer(
         many=True, read_only=True, source='cartitem_set')
     coupon = serializers.SerializerMethodField(read_only=True)
-    sub_total = serializers.SerializerMethodField(read_only=True)
-    discount = serializers.SerializerMethodField(read_only=True)
-    shipping = serializers.SerializerMethodField(read_only=True)
-    tax = serializers.SerializerMethodField(read_only=True)
-    total = serializers.SerializerMethodField(read_only=True)
+    calculate = serializers.SerializerMethodField(read_only=True)
     address = AddressSerializer(read_only=True)
 
     class Meta:
         model = models.Cart
         fields = [
-            'user', 'address', 'products', 'coupon', 'payment_mode', 'sub_total', 'discount', 'shipping', 'tax', 'total']
+            'user', 'address', 'products', 'coupon', 'payment_mode', 'calculate']
         read_only_fields = [
-            'user', 'address', 'products', 'coupon', 'payment_mode', 'sub_total', 'discount', 'shipping', 'tax', 'total']
+            'user', 'address', 'products', 'coupon', 'payment_mode', 'calculate']
 
     def get_coupon(self, obj):
         if obj.coupon:
             return obj.coupon.code
         return None
 
-    def get_sub_total(self, obj):
-        return obj.sub_total
-
-    def get_discount(self, obj):
-        return utils.calculate_discount(obj)
-
-    def get_shipping(self, obj):
-        return utils.calculate_shipping(obj)
-
-    def get_tax(self, obj):
-        return utils.calculate_tax(obj)
-
-    def get_total(self, obj):
-        return utils.calculate_total(obj)
+    def get_calculate(self, obj):
+        calculate_serializer = CalculateSerializer()
+        return calculate_serializer.to_representation(obj)['calculate']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):

@@ -1,0 +1,1 @@
+docker exec -it cashya-shoppy python manage.py generate_totp
