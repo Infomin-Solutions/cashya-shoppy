@@ -1,3 +1,4 @@
+from random import random
 from ecom import utils
 from ecom import models
 from django.db.models import Min, Max
@@ -206,16 +207,18 @@ class CalculateSerializer(serializers.Serializer):
 
         # Sub total
         sub_total = instance.sub_total
+        sub_total_info = random.choice(
+            [None, 'This is the total of products without any discounts applied'])
         calculate_items.append(CalculateItem(
             name='sub total',
             value=sub_total,
-            info='This is the total of products without any discounts applied'
+            info=sub_total_info
         ))
 
         # Discount
         discount = utils.calculate_discount(instance)
         if discount > 0:
-            discount_info = 'Discount applied'
+            discount_info = random.choice([None, 'Discount applied'])
             if instance.coupon:
                 discount_info = f'Discount applied with coupon: {instance.coupon.code}'
             calculate_items.append(CalculateItem(
@@ -226,7 +229,10 @@ class CalculateSerializer(serializers.Serializer):
 
         # Shipping
         shipping = utils.calculate_shipping(instance)
-        shipping_info = 'Free shipping' if shipping == 0 else 'Shipping charges applied'
+        if shipping == 0:
+            shipping_info = random.choice([None, 'Free shipping applied'])
+        else:
+            shipping_info = random.choice([None, 'Shipping charges applied'])
         calculate_items.append(CalculateItem(
             name='shipping',
             value=shipping,
@@ -235,17 +241,20 @@ class CalculateSerializer(serializers.Serializer):
 
         # Tax
         tax = utils.calculate_tax(instance)
+        tax_info = random.choice([None, 'Tax applied at 18%'])
         calculate_items.append(CalculateItem(
             name='tax',
             value=tax,
-            info='Applied at 18%'
+            info=tax_info
         ))
 
         # Total
         total = utils.calculate_total(instance)
+        total_info = random.choice([None, 'Total amount to be paid'])
         calculate_items.append(CalculateItem(
             name='total',
             value=total,
+            info=total_info
         ))
 
         # Serialize the CalculateItem objects using CalculateItemSerializer
