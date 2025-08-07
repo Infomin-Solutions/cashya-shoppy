@@ -1,4 +1,4 @@
-from random import random
+import random
 from ecom import utils
 from ecom import models
 from django.db.models import Min, Max
