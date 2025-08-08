@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'phonenumber_field',
+    'adminsortable2',
 
     'authentication',
     'root',
@@ -143,8 +144,8 @@ LOGGING = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=2),  # 5 minutes
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=15),    # 1 day
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=2),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=15),
     "ROTATE_REFRESH_TOKENS": True,
 }
 

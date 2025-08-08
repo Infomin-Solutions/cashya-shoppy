@@ -20,10 +20,11 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     image = models.ForeignKey(
         Image, blank=True, null=True, on_delete=models.SET_NULL, related_name='categories')
+    sort_order = models.PositiveIntegerField(default=0, db_index=True)
 
     class Meta:
         verbose_name_plural = 'categories'
-        ordering = ['name']
+        ordering = ['sort_order', 'name']
 
     def __str__(self):
         return self.name
@@ -58,7 +59,7 @@ class ProductVariant(models.Model):
     sort_order = models.PositiveIntegerField(default=0)
 
     class Meta:
-        ordering = ['-available', 'sort_order']
+        ordering = ['sort_order']
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"

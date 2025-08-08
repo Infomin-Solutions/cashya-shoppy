@@ -8,6 +8,7 @@ django-phonenumber-field
 djangorestframework-simplejwt
 requests
 gunicorn
+django-admin-sortable2
 razorpay
 paytmchecksum
 paytm-pg

@@ -1,6 +1,7 @@
 from typing import Any
 from django.contrib import admin
 from django.http.request import HttpRequest
+from adminsortable2.admin import SortableAdminMixin, SortableInlineAdminMixin
 from . import models
 from . import forms
 from . import filters
@@ -14,24 +15,25 @@ class ImageAdmin(admin.ModelAdmin):
 
 
 @admin.register(models.Category)
-class CategoryAdmin(admin.ModelAdmin):
-    list_display = ['name']
+class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
+    list_display = ['name', 'sort_order']
+    list_display_links = ['name']
 
 
-class ProductImageInline(admin.TabularInline):
+class ProductImageInline(SortableInlineAdminMixin, admin.TabularInline):
     model = models.ProductImage
     extra = 0
     min_num = 1
 
 
-class ProductVariantInline(admin.TabularInline):
+class ProductVariantInline(SortableInlineAdminMixin, admin.TabularInline):
     model = models.ProductVariant
     extra = 0
     min_num = 1
 
 
 @admin.register(models.Product)
-class ProductAdmin(admin.ModelAdmin):
+class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = [
         'name', 'variants_count', 'category', 'images_count', 'available']
     inlines = [ProductImageInline, ProductVariantInline]
