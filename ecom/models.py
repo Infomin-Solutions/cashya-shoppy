@@ -20,7 +20,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     image = models.ForeignKey(
         Image, blank=True, null=True, on_delete=models.SET_NULL, related_name='categories')
-    sort_order = models.PositiveIntegerField(default=0, db_index=True)
+    sort_order = models.IntegerField(default=0, db_index=True)
 
     class Meta:
         verbose_name_plural = 'categories'
@@ -56,7 +56,7 @@ class ProductVariant(models.Model):
     price = models.FloatField()
     stock = models.IntegerField()
     available = models.BooleanField(default=True)
-    sort_order = models.PositiveIntegerField(default=0)
+    sort_order = models.IntegerField(default=0)
 
     class Meta:
         ordering = ['sort_order']
@@ -69,7 +69,7 @@ class ProductImage(models.Model):
     id = models.AutoField(primary_key=True)
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
     image = models.ForeignKey(Image, on_delete=models.DO_NOTHING)
-    sort_order = models.PositiveIntegerField(default=0)
+    sort_order = models.IntegerField(default=0)
 
     class Meta:
         ordering = ['sort_order']
