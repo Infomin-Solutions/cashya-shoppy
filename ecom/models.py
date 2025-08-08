@@ -39,9 +39,11 @@ class Product(models.Model):
     images = models.ManyToManyField(
         Image, through='ProductImage', related_name='products')
     available = models.BooleanField(default=True)
+    category_product_sort_order = models.IntegerField(default=0, db_index=True)
+    product_sort_order = models.IntegerField(default=0, db_index=True)
 
     class Meta:
-        ordering = ['-available', 'name']
+        ordering = ['product_sort_order', '-available', 'name']
 
     def __str__(self):
         return self.name

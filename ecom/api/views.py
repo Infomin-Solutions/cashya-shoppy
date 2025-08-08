@@ -29,7 +29,8 @@ class CategoryViewSet(ReadOnlyModelViewSet):
 
 
 class ProductViewSet(ReadOnlyModelViewSet):
-    queryset = models.Product.objects.all()
+    queryset = models.Product.objects.all(
+    ).order_by('-available', 'product_sort_order', 'name')
     serializer_class = serializers.ProductSerializer
     permission_classes = (AllowAny, )
     authentication_classes = (JWTAuthentication, SessionAuthentication)

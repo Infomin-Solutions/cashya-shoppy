@@ -99,12 +99,18 @@ class WishlistCreateSerializer(serializers.ModelSerializer):
 
 
 class CategoryProductSerializer(serializers.ModelSerializer):
-    products = ProductSerializer(many=True, read_only=True)
+    products = serializers.SerializerMethodField(read_only=True)
     total_products = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = models.Category
         fields = ['id', 'name', 'products', 'total_products']
+
+    def get_products(self, obj):
+        # Get products ordered by category_product_sort_order
+        products = obj.products.all(
+        ).order_by('-available', 'category_product_sort_order', 'name')
+        return ProductSerializer(products, many=True, context=self.context).data
 
     def get_total_products(self, obj):
         return obj.products.count()

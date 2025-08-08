@@ -14,10 +14,23 @@ class ImageAdmin(admin.ModelAdmin):
     list_display = ['id', 'name', 'image']
 
 
+class CategoryProductInline(SortableInlineAdminMixin, admin.TabularInline):
+    model = models.Product
+    fields = ['name', 'category_product_sort_order']
+    readonly_fields = ['name']
+    extra = 0
+    ordering = ['category_product_sort_order', '-available', 'name']
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(models.Category)
 class CategoryAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = ['name', 'sort_order']
     list_display_links = ['name']
+    inlines = [CategoryProductInline]
 
 
 class ProductImageInline(SortableInlineAdminMixin, admin.TabularInline):
@@ -35,8 +48,9 @@ class ProductVariantInline(SortableInlineAdminMixin, admin.TabularInline):
 @admin.register(models.Product)
 class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = [
-        'name', 'variants_count', 'category', 'images_count', 'available']
+        'name', 'variants_count', 'category', 'images_count', 'available', 'product_sort_order']
     inlines = [ProductImageInline, ProductVariantInline]
+    ordering = ['product_sort_order', '-available', 'name']
 
     def images_count(self, obj):
         return obj.images.count()
