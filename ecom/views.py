@@ -2,13 +2,13 @@ from .utils import PaymentGateway
 from django.http import HttpRequest, HttpResponseRedirect, Http404, HttpResponse
 from . import models
 from django.views.decorators.csrf import csrf_exempt
+from django.conf import settings
 
 # Create your views here.
 
 
 @csrf_exempt
 def payment_callback(request: HttpRequest):
-    SITE = 'http://127.0.0.1:3000'
     pg = request.GET.get('pg')
     transaction_id = request.GET.get('transaction_id')
     if pg not in ['phonepe', 'razorpay', 'paytm'] and transaction_id is None:
@@ -33,5 +33,5 @@ def payment_callback(request: HttpRequest):
         models.OrderStatus.objects.create(
             status=models.STATUS_CHOICES.index('Paid'), order=payment.order)
         return HttpResponseRedirect(
-            f"{SITE}/callback?pg={pg}&transaction_id={transaction_id}")
+            f"{settings.FE_SITE}/callback?pg={pg}&transaction_id={transaction_id}")
     return HttpResponse(status=200)

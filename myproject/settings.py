@@ -210,3 +210,6 @@ RECAPTCHA_SECRET_KEY = os.getenv('RECAPTCHA_SECRET_KEY')
 TOTP_SECRET = os.getenv('TOTP_SECRET', 'abc')  # Plain string secret
 TOTP_ISSUER_NAME = 'Cashya Shoppy'
 TOTP_ACCOUNT_NAME = 'Cashya TOTP'
+
+FE_SITE = "https://cashya.askjhansi.com"
+BE_SITE = "https://cashya.infomin.solutions"
