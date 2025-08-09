@@ -65,8 +65,8 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.Product
         fields = [
-            'id', 'name', 'description', 'category', 'available', 'whishlist', 'variants', 'images', 'start_price', 'end_price']
-        read_only_fields = ['id', 'variants', 'images', 'whishlist']
+            'id', 'name', 'slug', 'description', 'category', 'available', 'whishlist', 'variants', 'images', 'start_price', 'end_price']
+        read_only_fields = ['id', 'slug', 'variants', 'images', 'whishlist']
 
     def get_start_price(self, obj):
         return obj.variants.aggregate(Min('price'))['price__min']
