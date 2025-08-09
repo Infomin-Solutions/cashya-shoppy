@@ -39,6 +39,7 @@ class ProductViewSet(ReadOnlyModelViewSet):
     search_fields = ['name', 'description']
     ordering_fields = '__all__'
     format_kwarg = None  # to access from other views
+    lookup_field = 'slug'
 
 
 class CategoryProductViewSet(ReadOnlyModelViewSet):
@@ -62,8 +63,10 @@ class WhishlistViewSet(ViewSet, generics.ListAPIView):
         return models.Wishlist.objects.filter(user=self.request.user)
 
     def retrieve(self, request, pk):
+        # pk here is actually the product slug now
+        product = get_object_or_404(models.Product, slug=pk)
         wishlist = get_object_or_404(
-            models.Wishlist, product_id=pk, user=request.user)
+            models.Wishlist, product=product, user=request.user)
         serializer = serializers.WishlistSerializer(
             wishlist, context={'request': request})
         return Response(serializer.data)
@@ -87,8 +90,10 @@ class WhishlistViewSet(ViewSet, generics.ListAPIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def destroy(self, request, pk):
+        # pk here is actually the product slug now
+        product = get_object_or_404(models.Product, slug=pk)
         wishlist = get_object_or_404(
-            models.Wishlist, product_id=pk, user=request.user)
+            models.Wishlist, product=product, user=request.user)
         wishlist.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 

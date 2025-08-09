@@ -48,7 +48,9 @@ class ProductVariantInline(SortableInlineAdminMixin, admin.TabularInline):
 @admin.register(models.Product)
 class ProductAdmin(SortableAdminMixin, admin.ModelAdmin):
     list_display = [
-        'name', 'variants_count', 'category', 'images_count', 'available', 'product_sort_order']
+        'name', 'slug', 'variants_count', 'category', 'images_count', 'available', 'product_sort_order']
+    fields = ['name', 'slug', 'description',
+              'category', 'available', 'product_sort_order']
     inlines = [ProductImageInline, ProductVariantInline]
     ordering = ['product_sort_order', '-available', 'name']
 
