@@ -33,6 +33,7 @@ class Category(models.Model):
 class Product(models.Model):
     id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=120, unique=True, blank=True)
     description = models.TextField(max_length=2000)
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name='products')
@@ -44,6 +45,19 @@ class Product(models.Model):
 
     class Meta:
         ordering = ['product_sort_order', '-available', 'name']
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            # For new products, use the ID as slug if no slug provided
+            if self.pk:
+                self.slug = str(self.pk)
+            else:
+                # For new objects without ID yet, save first to get ID, then update slug
+                super().save(*args, **kwargs)
+                self.slug = str(self.pk)
+                super().save(update_fields=['slug'])
+                return
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
