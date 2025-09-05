@@ -7,6 +7,10 @@ COPY . /myproject
 WORKDIR /myproject
 
 RUN pip install --no-cache-dir -r requirements.txt
-RUN python manage.py migrate
-RUN python manage.py createcachetable
-RUN python manage.py collectstatic --noinput
+
+# Make run.sh executable
+RUN chmod +x run.sh
+
+EXPOSE 5025
+
+CMD ["./run.sh"]
