@@ -1,0 +1,55 @@
+# Git and version control
+.git
+.gitignore
+
+# Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Development files
+.env
+*.log
+error.log
+
+# Database files (will be in volume)
+db.sqlite3
+data/
+
+# Media files (will be in volume)
+media/
+
+# Docker files
+docker-compose.yml
+docker-compose.*.yml
+Dockerfile.*
+
+# Documentation that's not needed in image
+README
+*.md
+!requirements.txt
+
+# Test files
+test/
+
+# Static files (will be collected during build)
+staticfiles/
+static/
