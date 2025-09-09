@@ -27,22 +27,15 @@ load_dotenv(BASE_DIR / '.env')
 SECRET_KEY = 'django-insecure-%azt(hs#@359p$02vbjyeol^k+g=o*sc&ej%fmi$y4fu1quo9)'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') == 'True'
+DEBUG = os.getenv('DEBUG', '0') == '1'
 
 ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    'cashya.infomin.solutions',
-    'proxy.infomin.solutions',
-]
+    host.strip() for host in os.getenv('ALLOWED_HOSTS', '').split(',') if host.strip()]
 
-CSRF_TRUSTED_ORIGINS = [
-    'http://localhost:5025',
-    'http://127.0.0.1:5025',
-    'https://cashya.infomin.solutions',
-    'https://proxy.infomin.solutions',
-    'http://proxy.infomin.solutions',
-]
+if DEBUG:
+    ALLOWED_HOSTS += ['localhost', '127.0.0.1']
+
+CSRF_TRUSTED_ORIGINS = ['*']
 
 CORS_URLS_REGEX = r".*/api/.*$"
 
