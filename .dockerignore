@@ -38,6 +38,7 @@ data/
 media/
 
 # Docker files
+compose.yml
 docker-compose.yml
 docker-compose.*.yml
 Dockerfile.*
@@ -51,5 +52,4 @@ README
 test/
 
 # Static files (will be collected during build)
-staticfiles/
 static/

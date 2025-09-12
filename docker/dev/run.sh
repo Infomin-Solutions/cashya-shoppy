@@ -17,6 +17,6 @@ python manage.py createcachetable
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
-# Start the application with Gunicorn
-echo "Starting Gunicorn server..."
-gunicorn myproject.wsgi:application --bind 0.0.0.0:5025
+# Start the application with runserver
+echo "Starting Python server..."
+python manage.py runserver 0.0.0.0:8000

@@ -1,0 +1,110 @@
+# Cashya Shoppy – Django E-commerce Backend
+
+A full-featured **Django e-commerce backend** with admin panel to manage products, orders, and customers.
+
+Docker images are available at:
+👉 [Docker Hub – infominsolutions/cashya-shoppy](https://hub.docker.com/r/infominsolutions/cashya-shoppy)
+
+---
+
+## 🚀 Quick Start
+
+### Development Mode
+
+```bash
+docker volume create cashya-shoppy-data
+
+docker run -d \
+  --name cashya-shoppy-dev \
+  -p 8000:8000 \
+  -v cashya-shoppy-data:/app/data \
+  -e DEBUG=1 \
+  -e ALLOWED_HOSTS=localhost,127.0.0.1 \
+  -e RECAPTCHA_SECRET_KEY=test_key \
+  -e TOTP_SECRET=test_secret \
+  --restart unless-stopped \
+  infominsolutions/cashya-shoppy:latest-dev
+```
+
+Visit: **[http://localhost:8000](http://localhost:8000)**
+
+---
+
+### Production Mode
+
+```bash
+docker volume create cashya-shoppy-data
+
+docker run -d \
+  --name cashya-shoppy-prod \
+  -p 8000:8000 \
+  -v cashya-shoppy-data:/app/data \
+  -e DEBUG=0 \
+  -e ALLOWED_HOSTS=your-domain.com \
+  -e RECAPTCHA_SECRET_KEY=your_recaptcha_key \
+  -e TOTP_SECRET=your_totp_secret \
+  --restart unless-stopped \
+  infominsolutions/cashya-shoppy:latest
+```
+
+---
+
+## 🐳 Using in Docker Compose
+
+Add this to your `docker-compose.yml`:
+
+```yaml
+services:
+    cashya-shoppy:
+        image: infominsolutions/cashya-shoppy:latest
+        container_name: cashya-shoppy
+        restart: unless-stopped
+        ports:
+            - "8000:8000"
+        volumes:
+            - cashya-data:/app/data
+        environment:
+            - DEBUG=0
+            - ALLOWED_HOSTS=your-domain.com
+            - RECAPTCHA_SECRET_KEY=your_recaptcha_key
+            - TOTP_SECRET=your_totp_secret
+
+volumes:
+    cashya-data:
+```
+
+Run:
+
+```bash
+docker compose up -d
+```
+
+---
+
+## ⚙️ Environment Variables
+
+**Required:**
+
+-   `DEBUG` → `1` (dev), `0` (prod)
+-   `ALLOWED_HOSTS` → Comma-separated hostnames
+-   `RECAPTCHA_SECRET_KEY` → reCAPTCHA secret
+-   `TOTP_SECRET` → TOTP secret key
+
+---
+
+## 📂 Admin & API
+
+-   **Admin panel**: [http://localhost:8000/admin/](http://localhost:8000/admin/)
+
+    ```bash
+    docker exec -it cashya-shoppy-dev python manage.py createsuperuser
+    ```
+
+-   **API base URL**: [http://localhost:8000/api/](http://localhost:8000/api/)
+
+---
+
+## 📜 License
+
+This project is licensed under **GNU Affero General Public License v3 (AGPL-3.0)**.
+See [LICENSE](LICENSE) for details.

@@ -26,12 +26,22 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push Docker image
+      - name: Build and push Prod Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ./docker/prod/Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKER_USERNAME }}/cashya-shoppy:latest
             ${{ secrets.DOCKER_USERNAME }}/cashya-shoppy:${{ steps.commit.outputs.short_sha }}
+
+      - name: Build and push Dev Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/dev/Dockerfile
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/cashya-shoppy:latest-dev
+            ${{ secrets.DOCKER_USERNAME }}/cashya-shoppy:${{ steps.commit.outputs.short_sha }}-dev
