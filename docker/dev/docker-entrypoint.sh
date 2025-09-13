@@ -21,4 +21,4 @@ python manage.py collectstatic --noinput
 echo "Starting Python server..."
 
 echo "Starting with debugpy for remote debugging..."
-PYDEVD_DISABLE_FILE_VALIDATION=1 python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000
+PYDEVD_DISABLE_FILE_VALIDATION=1 python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 manage.py runserver 0.0.0.0:8000
