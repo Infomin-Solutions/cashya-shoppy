@@ -19,4 +19,6 @@ python manage.py collectstatic --noinput
 
 # Start the application with runserver
 echo "Starting Python server..."
-python manage.py runserver 0.0.0.0:8000
+
+echo "Starting with debugpy for remote debugging..."
+PYDEVD_DISABLE_FILE_VALIDATION=1 python -Xfrozen_modules=off -m debugpy --listen 0.0.0.0:5678 --wait-for-client manage.py runserver 0.0.0.0:8000

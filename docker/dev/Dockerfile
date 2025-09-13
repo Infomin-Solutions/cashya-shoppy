@@ -24,5 +24,6 @@ LABEL volume.data.path="/app/data"
 LABEL volume.data.description="Contains SQLite database and media files"
 
 EXPOSE 8000
+EXPOSE 5678
 
 CMD ["./docker/dev/docker-entrypoint.sh"]

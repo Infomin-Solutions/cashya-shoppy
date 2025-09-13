@@ -3,7 +3,7 @@ services:
     build:
       context: ../../
       dockerfile: docker/dev/Dockerfile
-    container_name: cashya-shoppy-backend
+    container_name: cashya-shoppy-backend-dev
     restart: unless-stopped
     env_file:
       - ../../.env
@@ -12,3 +12,4 @@ services:
       - ../../data:/app/data
     ports:
       - 8000:8000
+      - 5678:5678
