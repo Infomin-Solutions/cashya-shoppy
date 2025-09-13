@@ -166,3 +166,4 @@ media
 /bootstrap
 test/
 totp_qr.png
+compose.override.yml

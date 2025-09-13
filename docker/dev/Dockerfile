@@ -12,7 +12,7 @@ RUN mkdir -p /app/data/media
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Make run.sh executable
-RUN chmod +x docker/dev/run.sh
+RUN chmod +x docker/dev/docker-entrypoint.sh
 
 # Declare volume for persistent data (database and media files)
 # Recommended volume name: cashya-shoppy-data
@@ -23,6 +23,6 @@ LABEL volume.data.name="cashya-shoppy-data"
 LABEL volume.data.path="/app/data"
 LABEL volume.data.description="Contains SQLite database and media files"
 
-EXPOSE 5025
+EXPOSE 8000
 
-CMD ["./docker/dev/run.sh"]
+CMD ["./docker/dev/docker-entrypoint.sh"]

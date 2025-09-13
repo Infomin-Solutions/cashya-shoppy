@@ -27,6 +27,7 @@ Thumbs.db
 
 # Development files
 .env
+.env.*
 *.log
 error.log
 

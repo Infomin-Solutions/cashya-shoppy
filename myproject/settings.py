@@ -67,6 +67,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
@@ -209,3 +210,10 @@ TOTP_ACCOUNT_NAME = 'Cashya TOTP'
 
 FE_SITE = "https://cashya.askjhansi.com"
 BE_SITE = "https://cashya.infomin.solutions"
+
+# WhiteNoise configuration for serving static files in production
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
+# Optional: Enable compression and caching for static files
+WHITENOISE_USE_FINDERS = True
+WHITENOISE_AUTOREFRESH = True

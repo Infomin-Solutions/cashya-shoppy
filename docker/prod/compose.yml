@@ -1,17 +1,17 @@
 services:
-  gunicorn:
+  backend:
     build:
       context: ../../
       dockerfile: docker/prod/Dockerfile
-    container_name: cashya-shoppy-gunicorn
+    container_name: cashya-shoppy-backend
     restart: unless-stopped
     env_file:
-      - ../../.env.prod
+      - ../../.env
     volumes:
       - ../../:/app
       - ../../data:/app/data
     ports:
-      - 5025:8000
+      - 8000:8000
 
 volumes:
   data:
