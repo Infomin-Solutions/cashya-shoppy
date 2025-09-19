@@ -1,15 +1,28 @@
-FROM python:3.11-slim
+FROM python:3.10-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV UV_SYSTEM_PYTHON=1
 
-COPY . /app
+# Install uv with pinned version
+COPY --from=ghcr.io/astral-sh/uv:0.2.26 /uv /bin/uv
+
 WORKDIR /app
+
+# Copy dependency file first for better caching
+COPY pyproject.toml ./
+
+RUN uv venv /opt/venv \
+    && . /opt/venv/bin/activate \
+    && uv sync --group dev
+
+# Now copy the rest of the project
+COPY . /app
+
+ENV PATH="/opt/venv/bin:$PATH"
 
 # Create data directory structure for database and media files
 RUN mkdir -p /app/data/media
-
-RUN pip install --no-cache-dir -r requirements.txt
 
 # Make run.sh executable
 RUN chmod +x docker/dev/docker-entrypoint.sh

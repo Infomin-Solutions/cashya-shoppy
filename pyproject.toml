@@ -1,0 +1,39 @@
+[project]
+name = "cashya-shoppy"
+description = "Ecommerce backend for Cashya"
+version = "0.1.0"
+requires-python = "==3.10"
+
+dependencies = [
+    "django>=5.2.6",
+    "django-admin-sortable2>=2.2.8",
+    "django-cors-headers>=4.9.0",
+    "django-phonenumber-field>=8.1.0",
+    "djangorestframework>=3.16.1",
+    "djangorestframework-simplejwt>=5.5.1",
+    "gunicorn>=23.0.0",
+    "paytm-pg>=1.1.2",
+    "paytmchecksum>=1.7.0",
+    "phonenumbers>=9.0.14",
+    "pillow>=11.3.0",
+    "pyotp>=2.9.0",
+    "python-dotenv>=1.1.1",
+    "qrcode[pil]>=8.2",
+    "razorpay>=1.4.2",
+    "requests==2.31.0",
+    "whitenoise>=6.11.0",
+    "phonepe_sdk==1.1.0",
+]
+
+[tool.uv.sources]
+phonepe_sdk = { index = "phonepe" }
+
+[[tool.uv.index]]
+name = "phonepe"
+url = "https://phonepe.mycloudrepo.io/public/repositories/phonepe-pg-sdk-python"
+explicit = true
+
+[dependency-groups]
+dev = [
+    "debugpy>=1.8.17",
+]
