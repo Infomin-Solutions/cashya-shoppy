@@ -111,6 +111,13 @@ DATABASES = {
 REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 24,
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.ScopedRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'login': os.getenv('THROTTLE_RATE_LOGIN', '5/min'),
+        'send_otp': os.getenv('THROTTLE_RATE_SEND_OTP', '3/min'),
+    },
 }
 
 LOGGING = {

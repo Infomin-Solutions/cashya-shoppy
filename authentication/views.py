@@ -7,6 +7,7 @@ from django.conf import settings
 
 from rest_framework import status
 from rest_framework.viewsets import ViewSet
+from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.response import Response
 
 from rest_framework_simplejwt.tokens import RefreshToken
@@ -19,6 +20,8 @@ from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
 class LogInViewSet(ViewSet):
     serializer_class = serializers.LogInSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'login'
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
@@ -52,6 +55,8 @@ class TokenRefreshViewSet(ViewSet, TokenRefreshView):
 
 class SendOTP(ViewSet):
     serializer_class = serializers.OTPSerializer
+    throttle_classes = [ScopedRateThrottle]
+    throttle_scope = 'send_otp'
 
     def create(self, request):
         serializer = self.serializer_class(data=request.data)
