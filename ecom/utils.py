@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 import razorpay
 from django.utils import timezone
@@ -76,7 +77,7 @@ def requires(*fields):
 def timestamp(): return str(int(datetime.now().timestamp()))
 
 
-STAGING = True
+STAGING = os.getenv('PG_STAGING', '1') == '1'
 PAYMENT_MODES = [
     ('cod', 'Cash on delivery'),
     ('phonepe', 'Online payment (PhonePe)'),
@@ -87,18 +88,21 @@ PAYMENT_MODES = [
 
 class PaymentGateway:
     class PhonePe:
-        _MID = 'PGTESTPAYUAT86'
-        __SALT_KEY = '96434309-7796-489d-8924-ab56988a6076'
-        _SALT_INDEX = 1
+        _MID = os.getenv('PHONEPE_MERCHANT_ID', '')
+        __SALT_KEY = os.getenv('PHONEPE_SALT_KEY', '')
+        _SALT_INDEX = int(os.getenv('PHONEPE_SALT_INDEX', '1'))
         _ENV_UAT = Env.UAT
         _ENV_PROD = Env.PROD
         _ENV = _ENV_UAT if STAGING else _ENV_PROD
-        __phonepe_client = PhonePePaymentClient(
-            merchant_id=_MID,
-            salt_key=__SALT_KEY,
-            salt_index=_SALT_INDEX,
-            env=_ENV
-        )
+
+        @classmethod
+        def _client(cls):
+            return PhonePePaymentClient(
+                merchant_id=cls._MID,
+                salt_key=cls.__SALT_KEY,
+                salt_index=cls._SALT_INDEX,
+                env=cls._ENV,
+            )
 
         order_id: str
         amount: str
@@ -123,7 +127,7 @@ class PaymentGateway:
                 redirect_url=callback_url,
                 redirect_mode='REDIRECT',
             )
-            pay_page_response = self.__phonepe_client.pay(pay_page_request)
+            pay_page_response = self._client().pay(pay_page_request)
             return {
                 'txn_token': pay_page_response.data.instrument_response.redirect_info.url,
                 'callback_url': callback_url,
@@ -133,7 +137,7 @@ class PaymentGateway:
 
         @requires('order_id')
         def get_transaction_status(self):
-            response = self.__phonepe_client.check_status(self.order_id)
+            response = self._client().check_status(self.order_id)
             return {
                 'paid': response.code == 'PAYMENT_SUCCESS',
                 'status': response.code,
@@ -142,12 +146,16 @@ class PaymentGateway:
             }
 
     class RazorPay:
-        _API_KEY = 'rzp_test_U2QTSmNxrqTbil'
-        __API_SECRET = 'TpoYjvZXQICO9fTSxXx6H6hp'
-        __razorpay_client = razorpay.Client(
-            auth=(_API_KEY, __API_SECRET))
-        __razorpay_client.set_app_details(
-            {"title": "Test App", "version": "1"})
+        _API_KEY = os.getenv('RAZORPAY_API_KEY', '')
+        __API_SECRET = os.getenv('RAZORPAY_API_SECRET', '')
+
+        @classmethod
+        def _client(cls):
+            client = razorpay.Client(
+                auth=(cls._API_KEY, cls.__API_SECRET)
+            )
+            client.set_app_details({"title": "Cashya Backend", "version": "1"})
+            return client
 
         order_id: str
         amount: str
@@ -180,7 +188,7 @@ class PaymentGateway:
 
         @requires('order_id', 'amount', 'name', 'phone')
         def initiate_transaction(self):
-            order = self.__razorpay_client.order.create(data={
+            order = self._client().order.create(data={
                 "amount": int(float(self.amount) * 100),
                 "currency": "INR",
                 "receipt": str(self.order_id),
@@ -192,7 +200,7 @@ class PaymentGateway:
 
         @requires('order_id')
         def get_transaction_status(self):
-            data = self.__razorpay_client.order.fetch(self.order_id)
+            data = self._client().order.fetch(self.order_id)
             return {
                 'paid': data.get('status') == 'paid',
                 'status': data.get('status'),  # created, attempted, paid
@@ -200,14 +208,23 @@ class PaymentGateway:
             }
 
     class PayTm:
-        _MID = 'micoUt79147315503216'
-        __SECRET = '5#0L4Fmws9p7gy&b'
+        _MID = os.getenv('PAYTM_MID', '')
+        __SECRET = os.getenv('PAYTM_SECRET', '')
         _WEBSITE_UAT = 'WEBSTAGING'
         _WEBSITE_PROD = 'DEFAULT'
         _WEBSITE = _WEBSITE_UAT if STAGING else _WEBSITE_PROD
         _ENV_UAT = 'https://securegw-stage.paytm.in'
         _ENV_PROD = 'https://securegw.paytm.in'
         _ENV = _ENV_UAT if STAGING else _ENV_PROD
+
+        @classmethod
+        def _get_conf(cls):
+            return {
+                'mid': cls._MID,
+                'secret': cls.__SECRET,
+                'website': cls._WEBSITE,
+                'env_url': cls._ENV,
+            }
 
         order_id: str
         amount: str
@@ -223,10 +240,11 @@ class PaymentGateway:
         def initiate_transaction(self):
             paytmParams = dict()
             order_id = f"{self.order_id}X{timestamp()}"
+            cfg = self._get_conf()
             paytmParams["body"] = {
                 "requestType": "Payment",
-                "mid": self._MID,
-                "websiteName": self._WEBSITE,
+                "mid": cfg['mid'],
+                "websiteName": cfg['website'],
                 "orderId": order_id,
                 "callbackUrl": f"{settings.BE_SITE}/ecom/callback?pg=paytm&transaction_id={order_id}",
                 "txnAmount": {
@@ -240,12 +258,12 @@ class PaymentGateway:
                 },
             }
             checksum = PaytmChecksum.generateSignature(
-                json.dumps(paytmParams["body"]), self.__SECRET)
+                json.dumps(paytmParams["body"]), cfg['secret'])
             paytmParams["head"] = {
                 "signature": checksum
             }
             post_data = json.dumps(paytmParams)
-            url = f"{self._ENV}/theia/api/v1/initiateTransaction?mid={self._MID}&orderId={order_id}"
+            url = f"{cfg['env_url']}/theia/api/v1/initiateTransaction?mid={cfg['mid']}&orderId={order_id}"
             response = requests.post(
                 url,
                 data=post_data,
@@ -261,7 +279,7 @@ class PaymentGateway:
                 token = ''
                 print(res)
             return {
-                'config': f"{self._ENV}/merchantpgpui/checkoutjs/merchants/{self._MID}.js",
+                'config': f"{cfg['env_url']}/merchantpgpui/checkoutjs/merchants/{cfg['mid']}.js",
                 'txn_token': token,
                 'order_id': order_id,
                 'status': res["body"]["resultInfo"]["resultStatus"]
@@ -270,18 +288,19 @@ class PaymentGateway:
         @requires('order_id')
         def get_transaction_status(self):
             paytmParams = dict()
+            cfg = self._get_conf()
             paytmParams["body"] = {
-                'mid': self._MID,
+                'mid': cfg['mid'],
                 'orderId': self.order_id
             }
             checksum = PaytmChecksum.generateSignature(
-                json.dumps(paytmParams["body"]), self.__SECRET)
+                json.dumps(paytmParams["body"]), cfg['secret'])
             paytmParams["head"] = {
                 "signature": checksum
             }
             post_data = json.dumps(paytmParams)
 
-            url = f"{self._ENV}/v3/order/status"
+            url = f"{cfg['env_url']}/v3/order/status"
             response = requests.post(
                 url,
                 data=post_data,
