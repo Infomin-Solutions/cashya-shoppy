@@ -2,6 +2,7 @@ import random
 
 from . import models
 from . import serializers
+from .utils import send_otp_sms_fast2sms
 
 from django.conf import settings
 
@@ -66,11 +67,13 @@ class SendOTP(ViewSet):
             # Send OTP to phone_number
             otp = random.randint(1000, 9999)
             models.OTP.objects.create(phone_number=phone_number, otp=otp)
+            sms_sent = send_otp_sms_fast2sms(phone_number, str(otp))
 
             res = {
                 'phone_number': phone_number,
                 'success': True,
-                'message': 'OTP sent successfully.'
+                'message': 'OTP sent successfully.',
+                'sms_sent': sms_sent,
             }
             if settings.DEBUG:
                 res['otp'] = otp

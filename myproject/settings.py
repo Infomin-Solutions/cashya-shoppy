@@ -224,3 +224,6 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Optional: Enable compression and caching for static files
 WHITENOISE_USE_FINDERS = True
 WHITENOISE_AUTOREFRESH = True
+
+# Fast2SMS integration
+FAST2SMS_API_KEY = os.getenv('FAST2SMS_API_KEY')

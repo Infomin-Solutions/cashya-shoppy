@@ -5,6 +5,40 @@ import base64
 import time
 from io import BytesIO
 from django.conf import settings
+from phonenumber_field.phonenumber import PhoneNumber
+
+
+def send_otp_sms_fast2sms(phone_e164: str, otp_code: str) -> bool:
+    """Send OTP using Fast2SMS. Returns True when request is queued/accepted.
+
+    Requires settings:
+      - FAST2SMS_ENABLED: '1' to enable
+      - FAST2SMS_API_KEY: API key string
+      - FAST2SMS_ROUTE: default 'otp'
+    """
+    api_key = getattr(settings, 'FAST2SMS_API_KEY', None)
+    if not api_key:
+        return False
+
+    phone_number = PhoneNumber.from_string(phone_e164).national_number
+    try:
+        headers = {
+            'authorization': api_key,
+            'Content-Type': 'application/json',
+        }
+        payload = {
+            'route': 'otp',
+            'variables_values': str(otp_code),
+            'numbers': phone_number,
+        }
+        resp = requests.post('https://www.fast2sms.com/dev/bulkV2',
+                             headers=headers, json=payload, timeout=10)
+        data = resp.json() if resp.headers.get(
+            'content-type', '').startswith('application/json') else {}
+        # Fast2SMS returns { return: true, message: [...] } pattern typically
+        return resp.ok and bool(data.get('return', True))
+    except Exception:
+        return False
 
 
 def recaptcha_verify(token: str):
