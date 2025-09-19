@@ -24,7 +24,7 @@ load_dotenv(BASE_DIR / '.env')
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-%azt(hs#@359p$02vbjyeol^k+g=o*sc&ej%fmi$y4fu1quo9)'
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-secret-key')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', '0') == '1'
@@ -141,8 +141,8 @@ LOGGING = {
 }
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=2),
-    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=15),
+    "ACCESS_TOKEN_LIFETIME": datetime.timedelta(days=int(os.getenv('JWT_ACCESS_TTL_DAYS', '2'))),
+    "REFRESH_TOKEN_LIFETIME": datetime.timedelta(days=int(os.getenv('JWT_REFRESH_TTL_DAYS', '15'))),
     "ROTATE_REFRESH_TOKENS": True,
 }
 
@@ -208,8 +208,8 @@ TOTP_SECRET = os.getenv('TOTP_SECRET', 'abc')  # Plain string secret
 TOTP_ISSUER_NAME = 'Cashya Shoppy'
 TOTP_ACCOUNT_NAME = 'Cashya TOTP'
 
-FE_SITE = "https://cashya.askjhansi.com"
-BE_SITE = "https://cashya.infomin.solutions"
+FE_SITE = os.getenv('FE_SITE', 'http://localhost:3000')
+BE_SITE = os.getenv('BE_SITE', 'http://localhost:8000')
 
 # WhiteNoise configuration for serving static files in production
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
