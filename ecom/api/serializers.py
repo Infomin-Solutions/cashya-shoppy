@@ -339,10 +339,18 @@ class OrderSerializer(serializers.ModelSerializer):
             'phone_number', 'alternate_phone_number', 'total', 'created_at', 'status', 'items', 'statuses']
 
     def validate(self, attrs):
-        if not models.CartItem.objects.filter(cart__user=self.context['user']).count():
+        user = self.context['user']
+        if not models.CartItem.objects.filter(cart__user=user).count():
             raise ValidationError('Your cart is empty')
-        if not models.Cart.objects.filter(user=self.context['user']).first().address:
+        cart = models.Cart.objects.filter(user=user).first()
+        if not cart or not cart.address:
             raise ValidationError('Address is required for placing order')
+        # Ensure a valid payment mode is selected before checkout
+        if not cart.payment_mode:
+            raise ValidationError('Payment mode is required for placing order')
+        valid_modes = [mode for mode, _ in utils.PAYMENT_MODES]
+        if cart.payment_mode not in valid_modes:
+            raise ValidationError('Invalid payment mode selected')
         return super().validate(attrs)
 
     def create(self, validated_data):
