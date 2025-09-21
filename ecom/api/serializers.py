@@ -348,7 +348,7 @@ class OrderSerializer(serializers.ModelSerializer):
         # Ensure a valid payment mode is selected before checkout
         if not cart.payment_mode:
             raise ValidationError('Payment mode is required for placing order')
-        valid_modes = [mode for mode, _ in utils.PAYMENT_MODES]
+        valid_modes = [mode for mode, _ in utils.get_available_payment_modes()]
         if cart.payment_mode not in valid_modes:
             raise ValidationError('Invalid payment mode selected')
         return super().validate(attrs)
@@ -383,4 +383,4 @@ class PaymentSerializer(serializers.Serializer):
                 user)
 
     def get_user_specific_choices(self, user):
-        return [(None, '-')] + utils.PAYMENT_MODES
+        return [(None, '-')] + utils.get_available_payment_modes()

@@ -353,7 +353,7 @@ class PaymentViewSet(ViewSet):
         'This method should return the list of payment methods available with meta data'
         cart = models.Cart.objects.get(user=request.user)
         methods = []
-        for mode in utils.PAYMENT_MODES:
+        for mode in utils.get_available_payment_modes():
             methods.append({
                 'name': mode[1],
                 'value': mode[0],

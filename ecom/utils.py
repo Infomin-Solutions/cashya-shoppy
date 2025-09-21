@@ -77,23 +77,46 @@ def requires(*fields):
 def timestamp(): return str(int(datetime.now().timestamp()))
 
 
-STAGING = os.getenv('PG_STAGING', '1') == '1'
-PAYMENT_MODES = [
-    ('cod', 'Cash on delivery'),
-    ('phonepe', 'Online payment (PhonePe)'),
-    ('razorpay', 'Online payment (Razorpay)'),
-    ('paytm', 'Online payment (Paytm)'),
-]
+def get_available_payment_modes():
+    """Get payment modes filtered by admin settings and key availability."""
+    from root.models import SiteSetting  # Import here to avoid circular imports
+
+    available = []
+
+    # Get admin settings (using get_or_create for the existing SiteSetting model)
+    settings_obj, created = SiteSetting.objects.get_or_create(pk=1)
+
+    # COD: check admin flag
+    if settings_obj.enable_cod:
+        available.append(('cod', 'Cash on delivery'))
+
+    # PhonePe: check admin flag and keys
+    if (settings_obj.enable_phonepe and
+            os.getenv('PHONEPE_MERCHANT_ID')):
+        available.append(('phonepe', 'Online payment (PhonePe)'))
+
+    # Razorpay: check admin flag and keys
+    if (settings_obj.enable_razorpay and
+            os.getenv('RAZORPAY_API_KEY')):
+        available.append(('razorpay', 'Online payment (Razorpay)'))
+
+    # Paytm: check admin flag and keys
+    if (settings_obj.enable_paytm and
+            os.getenv('PAYTM_MID')):
+        available.append(('paytm', 'Online payment (Paytm)'))
+
+    return available
 
 
 class PaymentGateway:
+    STAGING = os.getenv('PG_STAGING', '1') == '1'
+
     class PhonePe:
         _MID = os.getenv('PHONEPE_MERCHANT_ID', '')
         __SALT_KEY = os.getenv('PHONEPE_SALT_KEY', '')
         _SALT_INDEX = int(os.getenv('PHONEPE_SALT_INDEX', '1'))
         _ENV_UAT = Env.UAT
         _ENV_PROD = Env.PROD
-        _ENV = _ENV_UAT if STAGING else _ENV_PROD
 
         @classmethod
         def _client(cls):
@@ -101,7 +124,7 @@ class PaymentGateway:
                 merchant_id=cls._MID,
                 salt_key=cls.__SALT_KEY,
                 salt_index=cls._SALT_INDEX,
-                env=cls._ENV,
+                env=cls._ENV_UAT if PaymentGateway.STAGING else cls._ENV_PROD,
             )
 
         order_id: str
@@ -212,18 +235,17 @@ class PaymentGateway:
         __SECRET = os.getenv('PAYTM_SECRET', '')
         _WEBSITE_UAT = 'WEBSTAGING'
         _WEBSITE_PROD = 'DEFAULT'
-        _WEBSITE = _WEBSITE_UAT if STAGING else _WEBSITE_PROD
         _ENV_UAT = 'https://securegw-stage.paytm.in'
         _ENV_PROD = 'https://securegw.paytm.in'
-        _ENV = _ENV_UAT if STAGING else _ENV_PROD
 
         @classmethod
         def _get_conf(cls):
+            staging = PaymentGateway.STAGING
             return {
                 'mid': cls._MID,
                 'secret': cls.__SECRET,
-                'website': cls._WEBSITE,
-                'env_url': cls._ENV,
+                'website': cls._WEBSITE_UAT if staging else cls._WEBSITE_PROD,
+                'env_url': cls._ENV_UAT if staging else cls._ENV_PROD,
             }
 
         order_id: str
