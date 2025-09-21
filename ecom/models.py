@@ -164,6 +164,7 @@ class Wishlist(models.Model):
 
     class Meta:
         unique_together = ('user', 'product')
+        ordering = ['-added_at']
 
     def __str__(self):
         return f"{self.user.username}'s whishlist"
