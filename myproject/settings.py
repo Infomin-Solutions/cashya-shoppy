@@ -227,3 +227,7 @@ WHITENOISE_AUTOREFRESH = True
 
 # Fast2SMS integration
 FAST2SMS_API_KEY = os.getenv('FAST2SMS_API_KEY')
+
+# Google Analytics 4 configuration
+GA_MEASUREMENT_ID = os.getenv('GA_MEASUREMENT_ID')
+GA_API_SECRET = os.getenv('GA_API_SECRET')

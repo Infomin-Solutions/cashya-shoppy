@@ -16,6 +16,8 @@ from rest_framework_simplejwt.views import TokenRefreshView
 from rest_framework_simplejwt.serializers import TokenRefreshSerializer
 from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 
+from myproject.analytics import ga_tracker
+
 # Create your views here.
 
 
@@ -33,6 +35,12 @@ class LogInViewSet(ViewSet):
                 phone_number=phone_number)
 
             refresh = RefreshToken.for_user(user)
+
+            # Track analytics event
+            if created:
+                ga_tracker.track_signup(user, method="phone")
+            else:
+                ga_tracker.track_login(user, method="phone")
 
             return Response({
                 'refresh': str(refresh),

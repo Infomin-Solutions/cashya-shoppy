@@ -3,6 +3,7 @@ from django.http import HttpRequest, HttpResponseRedirect, Http404, HttpResponse
 from . import models
 from django.views.decorators.csrf import csrf_exempt
 from django.conf import settings
+from myproject.analytics import ga_tracker
 
 # Create your views here.
 
@@ -91,6 +92,17 @@ def payment_callback(request: HttpRequest):
         if payment.order.status != 'Paid':
             payment.order.status = 'Paid'
             payment.order.save(update_fields=['status'])
+
+        # Track successful purchase in Google Analytics
+        ga_tracker.track_purchase(payment.order, user=payment.order.user)
+    else:
+        # Track failed payment if status indicates failure
+        if new_status and new_status.lower() in ['failed', 'cancelled', 'timeout', 'error']:
+            ga_tracker.track_failed_payment(
+                payment.order,
+                error_reason=new_status,
+                user=payment.order.user
+            )
 
     # Optionally, if not paid and desired, we could set order.status = 'Pending'
     # For now, only update when paid as per requirement
