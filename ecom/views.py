@@ -14,7 +14,37 @@ def payment_callback(request: HttpRequest):
     if pg not in ['phonepe', 'razorpay', 'paytm'] and transaction_id is None:
         raise Http404
 
-    # Best-effort authenticity: don't trust query params; fetch status from gateway
+    # Verify callback signature before processing
+    signature_valid = False
+
+    if pg == 'phonepe':
+        # PhonePe sends signature in X-VERIFY header
+        x_verify = request.META.get('HTTP_X_VERIFY')
+        request_body = request.body.decode('utf-8') if request.body else ''
+        signature_valid = PaymentGateway.PhonePe.verify_callback_signature(
+            x_verify, request_body)
+
+    elif pg == 'razorpay':
+        # Razorpay sends signature in X-Razorpay-Signature header
+        razorpay_signature = request.META.get('HTTP_X_RAZORPAY_SIGNATURE')
+        request_body = request.body.decode('utf-8') if request.body else ''
+        signature_valid = PaymentGateway.RazorPay.verify_callback_signature(
+            razorpay_signature, request_body)
+
+    elif pg == 'paytm':
+        # Paytm sends checksum in request parameters
+        checksum = request.POST.get(
+            'CHECKSUMHASH') or request.GET.get('CHECKSUMHASH')
+        request_body = request.body.decode('utf-8') if request.body else ''
+        signature_valid = PaymentGateway.PayTm.verify_callback_signature(
+            checksum, request_body)
+
+    # If signature verification fails, reject the callback
+    if not signature_valid:
+        # Log security incident (in production, you'd want proper logging)
+        return HttpResponse("Invalid signature", status=400)
+
+    # Signature verified - proceed with status verification from gateway
     if pg == 'phonepe':
         status = PaymentGateway.PhonePe(
             order_id=transaction_id).get_transaction_status()

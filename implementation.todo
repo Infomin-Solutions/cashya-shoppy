@@ -1,0 +1,129 @@
+Phase 1: Make backend deploy-ready and able to accept orders (no new features)
+
+Scope: Hardening, configuration, operational readiness, and payment/webhook closure so the current functionality works end-to-end in production.
+
+1) Security & Settings
+- [✔] Externalize all secrets via environment variables and NEVER commit real values.
+  - [✔] SECRET_KEY: read from env; fail on missing in production (DEBUG=0)
+  - [✔] SIMPLE_JWT signing/algorithm settings pinned (optional), tokens lifetimes env-driven
+  - [✔] RECAPTCHA_SECRET_KEY must be set in prod; block login if missing (or disable recaptcha gate explicitly)
+  - [✔] TOTP_SECRET set from env (already wired) – generate a strong secret
+- [ ] Use Decouple for settings management
+- [ ] Move values to constants.py where appropriate (e.g., PAYMENT_MODES)
+- [✘] CSRF/CORS
+  - [✘] CORS_ALLOW_ALL_ORIGINS is currently True; for prod restrict to FE domain(s) only
+  - [✘] Use explicit CSRF_TRUSTED_ORIGINS from env (list of exact origins); remove wildcard logic or ensure it’s safe and covered by tests. Wildcard middleware is permissive – review necessity
+- [✘] Allowed Hosts & HTTPS
+  - [✘] ALLOWED_HOSTS must include public backend hostname(s)
+  - [✘] Configure SECURE_* headers when running behind TLS (e.g., SECURE_PROXY_SSL_HEADER, SESSION_COOKIE_SECURE, CSRF_COOKIE_SECURE, SECURE_HSTS_SECONDS)
+
+2) Database & Migrations
+- [✘] Decide DB for production
+  - [✘] SQLite is configured; acceptable for very small installs but not for scale or concurrency. Consider Postgres for production
+  - [✘] If staying on SQLite, ensure volume persistence (already defined) and backups
+- [✘] Run and verify migrations on startup (already in entrypoint). Add health check endpoint or use `python -m django check --deploy` in CI
+
+3) Static/Media
+- [✘] Static files collected by entrypoint (OK). Ensure correct storage and caching headers via WhiteNoise
+- [✘] MEDIA files served by app container for now (OK for small scale). For larger deploys, plan object storage (S3/Cloud)
+
+4) Authentication & Onboarding
+- [✔] Phone-based login flow
+  - [✘] recaptcha_verify requires RECAPTCHA_SECRET_KEY; configure prod key and test
+  - [✔] OTP model stores codes; integrate with Fast2SMS for OTP delivery (Phase 1 basic); rate limiting enforced
+  - [✔] Ensure `authentication.managers.UserManager` is implemented and migrations created (confirm present)
+- [✔] JWT Access
+  - [✔] Confirm clock skew tolerance and token lifetimes; rotate refresh tokens (already True)
+
+5) Payments & Order lifecycle
+- [✔] Keys in code (critical): move payment gateway keys to environment variables immediately
+  - [✔] PhonePe: merchant_id, salt_key, salt_index, env
+  - [✔] Razorpay: api_key, api_secret
+  - [✔] Paytm: MID, secret, website, env URLs
+  - [✔] Remove test keys from VCS and read via env; default to STAGING in DEBUG
+- [✔] Callback endpoint `/ecom/callback`
+  - [✔] Verify idempotency: updating `Payment` and creating `OrderStatus` ‘Paid’ should be safe on repeated callbacks; ensure not duplicating statuses repeatedly or allow duplicates but harmless
+  - [✔] Validate the callback authenticity using provider signatures/hashes before trusting status (best-effort by pulling status from the gateway server-side)
+  - [✔] Update `Order.status` string to current status when marking paid (now updated alongside `OrderStatus`)
+- [✔] Order placement
+  - [✘] On `OrderViewSet.create`, ensure stock check and reservation or at least availability check for `ProductVariant.stock` and decrement upon successful payment or order creation per business rule
+  - [✔] Ensure `Cart` address and payment_mode are required prior to checkout (serializer validates address; OK). Validate payment_mode present
+  - [✘] Clear cart after order creation (already does). Consider moving to after successful payment for prepaid modes (business decision)
+- [✔] Payment method listing
+  - [✔] `ecom/utils.PAYMENT_MODES` contains COD + 3 gateways. Ensure disabling unwanted gateways via env feature flags
+
+6) Admin & Ops
+- [✘] Create superuser on first boot (optional via env) for quick access
+- [✘] Add Django Admin hardening: disable admin if not needed; protect via IP allowlist or admin path change
+- [✘] Logging
+  - [✘] RotatingFileHandler configured; ensure container logs also go to stdout/stderr; already using Gunicorn logs to stdout. Keep app error logs rotating file
+  - [✘] Add request/response logging for payment flows at INFO level without PII
+
+7) API Surface & Docs
+- [✘] Ensure minimal API contract documented for FE:
+  - [✘] Auth: `/api/auth/login/`, `/api/auth/refresh/`, `/api/auth/send-otp/`
+  - [✘] Catalog: `/api/ecom/categories/`, `/api/ecom/products/`, `/api/ecom/category-products/`
+  - [✘] Cart: `/api/ecom/cart/` CRUD, `/api/ecom/coupon/`, `/api/ecom/address/`
+  - [✘] Checkout: `/api/ecom/orders/` POST to create order; `/api/ecom/orders/{id}/` GET; `/api/ecom/orders/{id}/` PUT to get payment config
+  - [✘] Payment: `/api/ecom/payment/` GET list methods; POST select
+  - [✘] Callback: `/ecom/callback?pg=...&transaction_id=...`
+- [✔] Provide Postman collection or OpenAPI schema (optional via drf-spectacular)
+
+8) Docker/Deploy
+- [✔] Dockerfile/compose
+  - [✔] Remove bind-mount of entire repo in prod compose; mount only data volume. Rely on built image
+  - [✘] Add healthcheck (curl /admin/login/ or /api/)
+  - [✘] Configure environment: `DEBUG=0`, `ALLOWED_HOSTS`, `CSRF_TRUSTED_ORIGINS`, `FE_SITE`, `BE_SITE`, payment keys
+- [✘] Reverse proxy
+  - [✘] Put Nginx/Traefik in front to terminate TLS, set headers and handle static if desired
+- [✘] Database
+  - [✘] If moving to Postgres: add service and env vars; configure `DATABASES` via env
+
+9) Data & Seed
+- [✘] Initial admin and sample data script (management command) for categories/products/images/variants so FE has something to show
+- [✘] Media upload path exists; verify
+
+10) Testing & Readiness checks
+- [✔] Add smoke tests for critical flows (catalog list, login+JWT, add to cart, set address, set payment, create order, update order to get payment config)
+- [✘] Run `python manage.py check --deploy` and fix warnings
+- [✔] Add rate limits for sensitive endpoints (send-otp, login) via DRF throttling
+
+11) Add Google Analytics
+
+12) others
+Callback verification and idempotency: Add signature/hash verification for all callbacks and make updates idempotent.
+  Fix order status handling and the malformed f-string in OrderViewSet.update:
+  Keep Order.status synchronized or compute from OrderStatus safely.
+
+Env variables to add (example .env):
+- DEBUG=0
+- SECRET_KEY=your-strong-secret
+- ALLOWED_HOSTS=backend.example.com
+- CSRF_TRUSTED_ORIGINS=https://frontend.example.com,https://backend.example.com
+- FE_SITE=https://frontend.example.com
+- BE_SITE=https://backend.example.com
+- RECAPTCHA_SECRET_KEY=... (prod key)
+- TOTP_SECRET=... (random, strong)
+- PHONEPE_MERCHANT_ID=
+- PHONEPE_SALT_KEY=
+- PHONEPE_SALT_INDEX=1
+- PHONEPE_ENV=uat|prod
+- RAZORPAY_API_KEY=
+- RAZORPAY_API_SECRET=
+- PAYTM_MID=
+- PAYTM_SECRET=
+- PAYTM_WEBSITE=DEFAULT|WEBSTAGING
+- PAYTM_ENV_URL=https://securegw.paytm.in|https://securegw-stage.paytm.in
+- ENABLE_GATEWAY_PHONEPE=1
+- ENABLE_GATEWAY_RAZORPAY=1
+- ENABLE_GATEWAY_PAYTM=1
+
+Acceptance criteria for Phase 1 (deploy-ready):
+- All secrets and payment keys are loaded from env; no hardcoded credentials remain
+- CORS/CSRF/checks scoped to real FE origin; DEBUG=0
+- App builds docker image and starts with migrations+collectstatic
+- Auth (send-otp, login) returns JWT and recaptcha is enforced
+- Catalog endpoints return data; cart and address endpoints work
+- Order creation succeeds with Cart set up; payment update returns gateway config and redirects complete to FE callback
+- Callbacks update the Payment record and Order status to Paid after signature verification
+- Comprehensive smoke test suite validates end-to-end critical flows: ✅ catalog, ✅ auth+JWT, ✅ cart, ✅ address, ✅ payment (methods), checkout (needs investigation)

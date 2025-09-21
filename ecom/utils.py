@@ -2,6 +2,9 @@ import json
 import os
 import requests
 import razorpay
+import hashlib
+import hmac
+import base64
 from django.utils import timezone
 from rest_framework.serializers import ValidationError
 from phonepe.sdk.pg.env import Env
@@ -168,6 +171,31 @@ class PaymentGateway:
                 'order_id': response.data.merchant_transaction_id,
             }
 
+        @classmethod
+        def verify_callback_signature(cls, x_verify_header, response_body):
+            """Verify PhonePe callback signature using X-VERIFY header"""
+            if not x_verify_header:
+                return False
+
+            try:
+                # X-VERIFY header format: "checksum###salt_index"
+                checksum, salt_index = x_verify_header.split('###')
+
+                # Verify salt index matches
+                if int(salt_index) != cls._SALT_INDEX:
+                    return False
+
+                # Calculate expected checksum
+                # PhonePe uses: base64(sha256(response_body + salt_key))
+                calculated_checksum = base64.b64encode(
+                    hashlib.sha256(
+                        (response_body + cls.__SALT_KEY).encode()).digest()
+                ).decode()
+
+                return hmac.compare_digest(checksum, calculated_checksum)
+            except (ValueError, IndexError, TypeError):
+                return False
+
     class RazorPay:
         _API_KEY = os.getenv('RAZORPAY_API_KEY', '')
         __API_SECRET = os.getenv('RAZORPAY_API_SECRET', '')
@@ -229,6 +257,27 @@ class PaymentGateway:
                 'status': data.get('status'),  # created, attempted, paid
                 'order_id': data.get('receipt'),
             }
+
+        @classmethod
+        def verify_callback_signature(cls, razorpay_signature, payload_body, webhook_secret=None):
+            """Verify Razorpay webhook signature"""
+            if not razorpay_signature or not payload_body:
+                return False
+
+            try:
+                # Use webhook secret if provided, otherwise use API secret
+                secret = webhook_secret or cls.__API_SECRET
+
+                # Calculate expected signature
+                expected_signature = hmac.new(
+                    secret.encode(),
+                    payload_body.encode(),
+                    hashlib.sha256
+                ).hexdigest()
+
+                return hmac.compare_digest(razorpay_signature, expected_signature)
+            except (TypeError, AttributeError):
+                return False
 
     class PayTm:
         _MID = os.getenv('PAYTM_MID', '')
@@ -338,3 +387,24 @@ class PaymentGateway:
                 # TXN_SUCCESS, TXN_FAILURE, PENDING, NO_RECORD_FOUND
                 'order_id': res["body"]["orderId"]
             }
+
+        @classmethod
+        def verify_callback_signature(cls, checksum_header, payload_body):
+            """Verify Paytm callback signature using checksum"""
+            if not checksum_header or not payload_body:
+                return False
+
+            try:
+                # Parse the payload as JSON to get parameters
+                payload_data = json.loads(payload_body)
+
+                # Paytm sends parameters in the request body
+                # We need to verify the checksum using PaytmChecksum
+                is_valid = PaytmChecksum.verifySignature(
+                    payload_data,
+                    cls.__SECRET,
+                    checksum_header
+                )
+                return is_valid
+            except (json.JSONDecodeError, TypeError, KeyError):
+                return False

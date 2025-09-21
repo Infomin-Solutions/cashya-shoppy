@@ -216,7 +216,7 @@ class OrderViewSet(ViewSet, generics.ListAPIView, generics.RetrieveAPIView):
             return Response({'detail': 'Order already placed'}, status=status.HTTP_400_BAD_REQUEST)
         status_pending = models.STATUS_CHOICES.index('Pending')
         if models.STATUS_CHOICES.index(order.status) > status_pending:
-            return Response({f"detail': 'Order has already been {order.status}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": f"Order has already been {order.status}"}, status=status.HTTP_400_BAD_REQUEST)
         if order.payment_mode == 'phonepe':
             phonepe = PaymentGateway.PhonePe(
                 order_id=order.id, amount=order.total, user_id=order.user.pk)
