@@ -19,6 +19,7 @@ from django.contrib import admin
 from django.urls import path, include
 from .apirouter import NestedApiRouter
 from django.conf.urls.static import static
+from .api_docs import api_docs
 
 router = NestedApiRouter(jwt_auth=True)
 router.register_app(r'auth', 'authentication.urls:router')
@@ -28,6 +29,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api-auth/', include('rest_framework.urls')),
+
+    # API Documentation - Download Postman Collection
+    path('api/docs/', api_docs, name='api-docs'),
 
     path('ecom/', include('ecom.urls')),
 ]
