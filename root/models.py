@@ -70,8 +70,8 @@ class SiteSetting(models.Model):
             missing_paytm = []
             if not os.getenv('PAYTM_MID'):
                 missing_paytm.append('PAYTM_MID')
-            if not os.getenv('PAYTM_MERCHANT_KEY'):
-                missing_paytm.append('PAYTM_MERCHANT_KEY')
+            if not os.getenv('PAYTM_SECRET'):
+                missing_paytm.append('PAYTM_SECRET')
 
             if missing_paytm:
                 errors['enable_paytm'] = ValidationError(
